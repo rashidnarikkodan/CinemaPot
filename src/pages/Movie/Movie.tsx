@@ -57,8 +57,9 @@ const Movie = () => {
     {/* LEFT — STREAM PLAYER */}
     <div className="lg:col-span-2">
       <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black border border-zinc-800 shadow-2xl">
-        <EmbedPlayer movieId={movie.id} server={server} />
+        <EmbedPlayer id={movie.id} server={server} type="movie" />
       </div>
+
           {/* SERVER SWITCHER */}
       <div className="flex flex-wrap justify-center gap-1 mt-8">
         {STREAM_SERVERS.map((s, i) => {
@@ -83,7 +84,7 @@ const Movie = () => {
 
 
     {/* RIGHT — DETAILS PANEL */}
-    <Details movie={movie} />
+    <Details media={movie} />
   </div>
 </div>
 
@@ -103,7 +104,8 @@ const Movie = () => {
                 popularity={m.popularity}
                 voteCount={m.vote_count}
                 tmdbId={m.id}
-                onClick={(id) => navigate(`/browse/${id}`)}
+                mediaType="movie"
+                onClick={(id) => navigate(`/watch/movie/${id}`)}
               />
             ))}
           </div>

@@ -10,8 +10,10 @@ interface MovieCardProps {
   popularity?: number;
   voteCount?: number;
   tmdbId: number;
+  mediaType?: "movie" | "tv";
   onClick?: (id: number) => void;
 }
+
 
 const MovieCard: React.FC<MovieCardProps> = ({
   title,
@@ -23,6 +25,7 @@ const MovieCard: React.FC<MovieCardProps> = ({
   voteCount,
   onClick,
   tmdbId,
+  mediaType = "movie",
 }) => {
   const IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
   const posterUrl = posterPath ? `${IMAGE_BASE}${posterPath}` : "https://via.placeholder.com/500x750?text=No+Poster";
@@ -64,12 +67,17 @@ const MovieCard: React.FC<MovieCardProps> = ({
 
       {/* B. Metadata Row */}
       <div className="flex items-center gap-2 text-[10px] sm:text-xs text-zinc-400 truncate">
-        <span>Movie</span>
+        <span>{mediaType === "movie" ? "Movie" : "TV Series"}</span>
         <span>•</span>
         <span>{releaseYear}</span>
-        <span>•</span>
-        <span>{typeof runtime === 'number' ? `${runtime} min` : runtime}</span>
+        {mediaType === "movie" && (
+          <>
+            <span>•</span>
+            <span>{typeof runtime === 'number' ? `${runtime} min` : runtime}</span>
+          </>
+        )}
       </div>
+
 
       {/* C. Title Row */}
       <h3 className="text-sm font-medium text-white line-clamp-2 leading-snug">

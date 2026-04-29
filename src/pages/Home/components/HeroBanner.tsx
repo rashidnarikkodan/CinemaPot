@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getRandomMovie } from "../../../services/tmdb.service";
+import { getRandomFeatured } from "../../../services/tmdb.service";
 import Header from "../../../components/common/Header";
 import HeroContent from "./HeroContent";
 import Loader from "../../../components/common/Loader";
@@ -11,7 +11,7 @@ const HeroBanner = () => {
 
   useEffect(() => {
     const fetchMovie = async () => {
-      const m = await getRandomMovie();
+      const m = await getRandomFeatured();
       setMovie(m);
       setLoading(false);
     };

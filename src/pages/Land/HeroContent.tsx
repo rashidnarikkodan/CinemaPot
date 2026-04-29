@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import { fetchMovies } from "../../utils/fetchMovies";
-import type {MovieDetails} from "../../types/movie";
+import { searchMulti } from "../../services/tmdb.service";
 import Icon from '../../assets/icons/favicon.png'
 
 interface Movie {
@@ -11,9 +10,8 @@ interface Movie {
   year: string;
   genre: string;
   poster?: string;
-
+  mediaType: "movie" | "tv";
 }
-
 
 const HeroContent = () => {
   const navigate = useNavigate();
@@ -29,19 +27,15 @@ const HeroContent = () => {
     setIsLoading(true);
 
     try {
-      const data = await fetchMovies({
-        title: "Search",
-        mediaType: "movie",
-        fetcher: "search",
-        params: { query }
-      });
+      const data = await searchMulti(query);
       
-      const formatted = data.results.map((m: MovieDetails) => ({
+      const formatted = data.results.map((m: any) => ({
         id: m.id,
         title: m.title || m.name,
         year: (m.release_date || m.first_air_date || "").split("-")[0],
-        genre: "Movie", // Simplified
-        poster: m.poster_path
+        genre: m.media_type === "tv" ? "TV Series" : "Movie",
+        poster: m.poster_path,
+        mediaType: m.media_type || "movie"
       }));
 
       setResults(formatted);
@@ -73,7 +67,7 @@ const HeroContent = () => {
   const handleSelectResult = (movie: Movie) => {
     setShowDropdown(false);
     setSearchTerm("");
-    navigate(`/browse/${movie.id}`);
+    navigate(`/watch/${movie.mediaType}/${movie.id}`);
   };
 
 
@@ -85,7 +79,8 @@ const HeroContent = () => {
       navigate("/browse");
       return;
     }
-    navigate(`/browse?q=${encodeURIComponent(searchTerm.trim())}`);
+    // Assuming browse page can handle general queries, or default to movie search
+    navigate(`/browse?q=${encodeURIComponent(searchTerm.trim())}&type=movie`);
 
   };
 
@@ -139,7 +134,7 @@ const HeroContent = () => {
                 <input
                   value={searchTerm}
                   onChange={handleSearchChange}
-                  placeholder="Search movies"
+                  placeholder="Search movies & TV shows"
                   className="flex-1 bg-transparent text-white placeholder-zinc-500 outline-none"
                 />
               </div>
@@ -171,7 +166,7 @@ const HeroContent = () => {
 
                     {results.slice(0, 5).map((movie) => (
                       <li
-                        key={movie.id}
+                        key={`${movie.mediaType}-${movie.id}`}
                         onClick={() => handleSelectResult(movie)}
                         className="flex cursor-pointer items-center gap-4 px-4 py-4 hover:bg-[#202020] transition-colors"
                       >
@@ -182,14 +177,16 @@ const HeroContent = () => {
                             className="h-14 w-10 rounded object-cover shadow-lg"
                           />
                         ) : (
-                          <div className="h-14 w-10 rounded bg-zinc-700 flex items-center justify-center text-[10px] text-zinc-500">No Image</div>
+                          <div className="h-14 w-10 rounded bg-zinc-700 flex items-center justify-center text-[10px] text-zinc-500 text-center leading-tight">No<br/>Image</div>
                         )}
 
 
-                        <div className="text-left">
+                        <div className="text-left flex-1">
                           <div className="font-semibold">{movie.title}</div>
-                          <div className="text-xs text-zinc-400">
-                            {movie.year} • {movie.genre}
+                          <div className="text-xs text-zinc-400 flex items-center gap-1.5">
+                            {movie.year && <span>{movie.year}</span>}
+                            {movie.year && <span>•</span>}
+                            <span className={movie.mediaType === 'tv' ? 'text-blue-400' : 'text-emerald-400'}>{movie.genre}</span>
                           </div>
                         </div>
                       </li>
@@ -197,16 +194,20 @@ const HeroContent = () => {
 
                   </ul>
 
-                  <div className="border-t border-zinc-800 p-2 flex justify-left items-center">
-                    <button
-                      onClick={handleSeeMore}
-                      className="rounded-full text-[10px] border border-red-500 px-4 py-2 hover:bg-red-700 hover:text-white"
-                    >
-                      <span className="text-sm text-red-500 hover:text-white">
-                      See More Results
-                      </span>
-                    </button>
-                  </div>
+                  {results.length > 0 ? (
+                    <div className="border-t border-zinc-800 p-2 flex justify-left items-center">
+                      <button
+                        onClick={handleSeeMore}
+                        className="rounded-full text-[10px] border border-red-500 px-4 py-2 hover:bg-red-700 hover:text-white transition-colors"
+                      >
+                        <span className="text-sm text-red-500 hover:text-white">
+                        See More Results
+                        </span>
+                      </button>
+                    </div>
+                  ) : searchTerm.length > 1 ? (
+                    <div className="py-6 text-zinc-400 text-sm">No results found for "{searchTerm}"</div>
+                  ) : null}
                 </>
               )}
 

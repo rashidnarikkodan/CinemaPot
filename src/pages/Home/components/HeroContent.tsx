@@ -9,12 +9,13 @@ type Props = {
 
 const HeroContent = ({ movie }: Props) => {
   const navigate = useNavigate()
-  if (!movie) return;
-  const title = movie.title || movie.original_title;
+  if (!movie) return null;
+  const title = movie.title || movie.name || movie.original_title;
   const year = movie.release_date
     ? new Date(movie.release_date).getFullYear()
-    : null;
+    : movie.first_air_date ? new Date(movie.first_air_date).getFullYear() : null;
   const rating = movie.vote_average ? movie.vote_average.toFixed(1) : null;
+  const mediaType = movie.media_type || 'movie';
 
   const overview =
     movie.overview?.length > 180
@@ -29,7 +30,7 @@ const HeroContent = ({ movie }: Props) => {
           <img src={Icon} alt='Logo'/>
         </div>
         <span className="text-sm font-black tracking-widest text-zinc-400 uppercase">
-          Cinema<span className="text-red-600">Pot</span> Original
+          Cinema<span className="text-red-600">Pot</span> {mediaType === 'tv' ? 'Series' : 'Original'}
         </span>
       </div>
 
@@ -57,7 +58,7 @@ const HeroContent = ({ movie }: Props) => {
       {/* Actions */}
       <div className="flex items-center gap-3">
         <button
-        onClick={()=>navigate(`/browse/${movie.id}`)}
+        onClick={()=>navigate(`/watch/${mediaType}/${movie.id}`)}
           className="flex items-center gap-2 rounded bg-gray-500/70 px-6 py-2 text-white font-semibold hover:bg-gray-500 transition"
       >
           <Play /> Watch Now

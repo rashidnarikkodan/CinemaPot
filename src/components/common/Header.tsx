@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Menu, X, Search, Github } from "lucide-react";
+import { Menu, X, Search } from "lucide-react";
 import SearchModal from "./Search";
 import Icon from '../../assets/icons/favicon.png'
 const Header = () => {
@@ -28,8 +28,8 @@ const Header = () => {
           >
             <Menu size={24} />
           </button>
-          
-          <div 
+
+          <div
             onClick={() => navigate('/')}
             className="flex items-center gap-2 cursor-pointer group"
           >
@@ -49,7 +49,7 @@ const Header = () => {
               <NavLink
                 key={item.name}
                 to={item.path}
-                className={({ isActive }) => 
+                className={({ isActive }) =>
                   `hover:text-white transition ${isActive ? "text-white font-semibold" : ""}`
                 }
               >
@@ -61,23 +61,16 @@ const Header = () => {
 
         {/* Right */}
         <div className="flex items-center gap-3 sm:gap-5 text-zinc-300">
-          <button onClick={()=>setSearchOpen(true)} className="hover:text-white transition">
+          <button onClick={() => setSearchOpen(true)} className="hover:text-white transition">
             <Search size={20} />
           </button>
-
-            <a href="https://github.com/Rashid-Narikkodan" target='_blank'>
-          <div className="flex items-center justify-center text-2xl font-semibold text-white shadow-lg">
-            <Github />
-          </div>
-            </a>
         </div>
       </div>
 
       {/* Mobile Slide Menu */}
       <div
-        className={`fixed top-0 left-0 h-full w-64 bg-black/98 text-zinc-300 transform transition-transform duration-300 ease-in-out md:hidden ${
-          isMenuOpen ? "translate-x-0" : "-translate-x-full"
-        } shadow-2xl z-50`}
+        className={`fixed top-0 left-0 h-full w-64 bg-black/98 text-zinc-300 transform transition-transform duration-300 ease-in-out md:hidden ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
+          } shadow-2xl z-50`}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
           <div className="flex items-center gap-2">
@@ -99,7 +92,7 @@ const Header = () => {
               <li key={item.name}>
                 <NavLink
                   to={item.path}
-                  className={({ isActive }) => 
+                  className={({ isActive }) =>
                     `block hover:text-white transition ${isActive ? "text-white font-bold" : ""}`
                   }
                   onClick={() => setIsMenuOpen(false)}

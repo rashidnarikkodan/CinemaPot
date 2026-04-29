@@ -6,6 +6,7 @@ import LandingPage from "../pages/Land/LandPage";
 import Browse from "../pages/Browse/Browse";
 import Home from "../pages/Home/Home";
 import Movie from "../pages/Movie/Movie";
+import Series from "../pages/Series/Series";
 
 function App() {
   return (
@@ -16,8 +17,11 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/browse" element={<Browse />} />
           <Route path="/browse/:id" element={<Movie />} />
+          <Route path="/watch/movie/:id" element={<Movie />} />
+          <Route path="/watch/tv/:id" element={<Series />} />
         </Routes>
       </BrowserRouter>
+
 
       <SpeedInsights />
       <Analytics />
