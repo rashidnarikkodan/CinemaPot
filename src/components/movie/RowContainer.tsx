@@ -23,8 +23,8 @@ const RowContainer = () => {
 
   return (
     <main className="flex flex-col">
-      {rows.map((row) => (
-        <MovieRow key={row.title} row={row} isLoading={loading?loading:false} />
+      {rows.map((row, idx) => (
+        <MovieRow key={row.title || `skeleton-row-${idx}`} row={row} isLoading={loading?loading:false} />
       ))}
     </main>
   );

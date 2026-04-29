@@ -10,7 +10,8 @@ type Props = {
   isLoading: boolean;
 };
 
-const getIconForTitle = (title: string) => {
+const getIconForTitle = (title?: string) => {
+  if (!title) return <Film className="h-5 w-5 text-zinc-300" />;
   const t = title.toLowerCase();
   if (t.includes('trending')) return <Flame className="h-5 w-5 text-red-500" />;
   if (t.includes('now playing') || t.includes('airing')) return <PlayCircle className="h-5 w-5 text-green-500" />;
@@ -32,7 +33,7 @@ const MovieRow = ({ row, isLoading }: Props) => {
   const navigate = useNavigate();
 
   const scroll = (direction: "left" | "right") => {
-    const container = document.getElementById(`row-${row.title}`);
+    const container = document.getElementById(`row-${row?.title || ''}`);
     if (container) {
       const scrollAmount = direction === "left" ? -500 : 500;
       container.scrollBy({ left: scrollAmount, behavior: "smooth" });
@@ -44,9 +45,9 @@ const MovieRow = ({ row, isLoading }: Props) => {
     <section className="relative px-6 md:px-12 py-6 overflow-x-hidden">
       <div className="mb-4 flex items-center justify-between">
   <div className="flex items-center gap-2">
-    {getIconForTitle(row.title)}
+    {getIconForTitle(row?.title)}
     <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white/90">
-      {row.title}
+      {row?.title || 'Loading...'}
     </h2>
   </div>
 
@@ -71,7 +72,7 @@ const MovieRow = ({ row, isLoading }: Props) => {
         {/* Scroll Arrows */}
 
         <div 
-          id={`row-${row.title}`}
+          id={`row-${row?.title || ''}`}
           className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
         >
           {isLoading?skelton.map((_,idx)=>{
@@ -82,7 +83,7 @@ const MovieRow = ({ row, isLoading }: Props) => {
               )
           })
           
-          :row.movies.map((movie) => {
+          :row.movies?.map((movie) => {
             const title = movie.title || movie.name || movie.original_title;
             const date = movie.release_date || movie.first_air_date || "N/A";
             return (
