@@ -28,7 +28,7 @@ const HeroContent = () => {
 
     try {
       const data = await searchMulti(query);
-      
+
       const formatted = data.results.map((m: any) => ({
         id: m.id,
         title: m.title || m.name,
@@ -72,10 +72,10 @@ const HeroContent = () => {
 
 
 
-  const handleSeeMore = () => {    
+  const handleSeeMore = () => {
     setShowDropdown(false);
 
-    if (!searchTerm.trim()){
+    if (!searchTerm.trim()) {
       navigate("/browse");
       return;
     }
@@ -113,7 +113,7 @@ const HeroContent = () => {
 
         {/* Heading */}
         <h1 className={`text-3xl font-extrabold leading-tight md:text-4xl transition-all duration-300 ${hasValue ? 'blur-sm opacity-50' : ''}`}>
-          Watch Free Movies Online<br/> & TV Shows in HD
+          Watch Free Movies Online<br /> & TV Shows in HD
         </h1>
 
         <p className={`mt-4 text-base text-zinc-400 transition-all duration-300 ${hasValue ? 'blur-sm opacity-50' : ''}`}>
@@ -143,12 +143,12 @@ const HeroContent = () => {
 
             {/* Bottom CTA */}
             <Link to="/home">
-            <button             
-              className="w-full border-t border-zinc-800 bg-red-600 py-4 font-semibold text-white hover:bg-red-700"
+              <button
+                className="w-full border-t border-zinc-800 bg-red-600 py-4 font-semibold text-white hover:bg-red-700"
               >
-              View Full Site →
-            </button>
-                </Link>
+                View Full Site →
+              </button>
+            </Link>
 
           </div>
 
@@ -171,13 +171,13 @@ const HeroContent = () => {
                         className="flex cursor-pointer items-center gap-4 px-4 py-4 hover:bg-[#202020] transition-colors"
                       >
                         {movie.poster ? (
-                          <img 
-                            src={`https://image.tmdb.org/t/p/w92${movie.poster}`} 
+                          <img
+                            src={`https://image.tmdb.org/t/p/w92${movie.poster}`}
                             alt={movie.title}
                             className="h-14 w-10 rounded object-cover shadow-lg"
                           />
                         ) : (
-                          <div className="h-14 w-10 rounded bg-zinc-700 flex items-center justify-center text-[10px] text-zinc-500 text-center leading-tight">No<br/>Image</div>
+                          <div className="h-14 w-10 rounded bg-zinc-700 flex items-center justify-center text-[10px] text-zinc-500 text-center leading-tight">No<br />Image</div>
                         )}
 
 
@@ -201,7 +201,7 @@ const HeroContent = () => {
                         className="rounded-full text-[10px] border border-red-500 px-4 py-2 hover:bg-red-700 hover:text-white transition-colors"
                       >
                         <span className="text-sm text-red-500 hover:text-white">
-                        See More Results
+                          See More Results
                         </span>
                       </button>
                     </div>

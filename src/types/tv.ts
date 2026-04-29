@@ -1,4 +1,4 @@
-import { Genre, ProductionCompany, ProductionCountry, SpokenLanguage } from "./movie";
+import type { Genre, ProductionCompany, ProductionCountry, SpokenLanguage } from "./movie";
 
 export type TV = {
   backdrop_path: string | null;
