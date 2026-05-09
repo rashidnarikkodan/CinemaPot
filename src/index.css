@@ -1,10 +1,65 @@
-html {
-  overflow-x: hidden;
-  background: black;
-}
 @import "tailwindcss";
 
+@theme {
+  --color-brand: #E50914;
+  --color-brand-hover: #C10712;
+  --color-surface: #0A0A0A;
+  --color-surface-hover: #1A1A1A;
+  --color-glass: rgba(10, 10, 10, 0.7);
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    background: var(--color-surface);
+    font-family: 'Outfit', sans-serif;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    color: white;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0A0A0A;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #27272a;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3f3f46;
+  }
+}
+
 @layer utilities {
+  .glass {
+    @apply backdrop-blur-xl bg-black/60 border border-white/5;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-500;
+  }
+
+  .shadow-premium {
+    box-shadow: 0 0 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }

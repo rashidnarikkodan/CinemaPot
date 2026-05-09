@@ -1,12 +1,5 @@
 export const STREAM_SERVERS = [
   {
-    name: "VidSrc.to",
-    movie: (id: number) => `https://vidsrc.to/embed/movie/${id}`,
-    tv: (id: number, s: number, e: number) =>
-      `https://vidsrc.to/embed/tv/${id}/${s}/${e}`,
-    isPremium: true,
-  },
-  {
     name: "VidLink",
     movie: (id: number) => `https://vidlink.pro/movie/${id}`,
     tv: (id: number, s: number, e: number) =>
@@ -18,6 +11,13 @@ export const STREAM_SERVERS = [
     movie: (id: number) => `https://rivestream.org/embed?type=movie&id=${id}`,
     tv: (id: number, s: number, e: number) =>
       `https://rivestream.org/embed?type=tv&id=${id}&season=${s}&episode=${e}`,
+    isPremium: true,
+  },
+  {
+    name: "VidSrc.to",
+    movie: (id: number) => `https://vidsrc.to/embed/movie/${id}`,
+    tv: (id: number, s: number, e: number) =>
+      `https://vidsrc.to/embed/tv/${id}/${s}/${e}`,
     isPremium: true,
   },
   {

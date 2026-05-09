@@ -1,30 +1,53 @@
 import { useEffect, useState } from "react";
 import MovieRow from "./MovieRow";
-import { fetchRows } from "../../utils/fetchRow";
+import { ROW_CONFIG } from "../../config/rowConfig";
+import { fetchMovies } from "../../utils/fetchMovies";
 import type { MovieRow as MovieRowType } from "../../types/row";
 
+/**
+ * Optimized RowContainer that handles sequential row loading 
+ * to prevent network congestion and improve initial TBT.
+ */
 const RowContainer = () => {
-  const [rows, setRows] = useState<MovieRowType[]>(Array(7).fill(0));
-  const [error, setError] = useState<Error | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [rowsData, setRowsData] = useState<Record<number, MovieRowType>>({});
+  const [loadingStates, setLoadingStates] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
-    fetchRows()
-      .then(setRows)
-      .catch(setError)
-      .finally(() => setLoading(false));
+    // Sequentially fetch rows to prioritize "above the fold" content
+    const loadRows = async () => {
+      for (let i = 0; i < ROW_CONFIG.length; i++) {
+        const config = ROW_CONFIG[i];
+        setLoadingStates(prev => ({ ...prev, [i]: true }));
+        
+        try {
+          const data = await fetchMovies(config);
+          setRowsData(prev => ({
+            ...prev,
+            [i]: {
+              title: config.title,
+              movies: data.results,
+              mediaType: config.mediaType,
+            }
+          }));
+        } catch (err) {
+          console.error(`Failed to load row: ${config.title}`, err);
+        } finally {
+          setLoadingStates(prev => ({ ...prev, [i]: false }));
+        }
+      }
+    };
+
+    loadRows();
   }, []);
 
-  if (error) {
-    return (
-      <p className="px-6 py-10 text-sm text-red-500">Failed to load movies</p>
-    );
-  }
-
   return (
-    <main className="flex flex-col">
-      {rows.map((row, idx) => (
-        <MovieRow key={row.title || `skeleton-row-${idx}`} row={row} isLoading={loading?loading:false} />
+    <main className="flex flex-col min-h-screen">
+      {ROW_CONFIG.map((config, idx) => (
+        <MovieRow 
+          key={config.title} 
+          row={rowsData[idx] || { title: config.title, movies: [], mediaType: config.mediaType }} 
+          isLoading={loadingStates[idx] ?? true} 
+        />
       ))}
     </main>
   );

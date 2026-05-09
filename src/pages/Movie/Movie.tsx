@@ -45,57 +45,67 @@ const Movie = () => {
 
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-black text-white">
       <ProtectedHeader />
-      
-      <main className="pt-20">
+
+      <main className="pt-24">
         {/* Back Button */}
-     <div className="px-4 md:px-10 pb-12">
+        <div className="px-4 md:px-12 pb-16">
 
-  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-12 items-start">
 
-    {/* LEFT — STREAM PLAYER */}
-    <div className="lg:col-span-2">
-      <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black border border-zinc-800 shadow-2xl">
-        <EmbedPlayer id={movie.id} server={server} type="movie" />
-      </div>
+            {/* LEFT — STREAM PLAYER */}
+            <div className="xl:col-span-3 space-y-12">
+              <div className="group relative aspect-video w-full rounded-xl overflow-hidden bg-black shadow-[0_30px_60px_rgba(0,0,0,0.5)] border border-white/5 transition-all duration-700">
+                <EmbedPlayer id={movie.id} server={server} type="movie" />
+              </div>
 
-          {/* SERVER SWITCHER */}
-      <div className="flex flex-wrap justify-center gap-1 mt-8">
-        {STREAM_SERVERS.map((s, i) => {
-            return (
-              <button
-              key={s.name}
-              onClick={() => setServer(i)}
-              className={`px-3 py-2  ${i==0?'sm:rounded-l-full':i==STREAM_SERVERS.length-1?'sm:rounded-r-full':''} rounded-sm text-sm border transition
-                ${server === i
-                ? "bg-red-600 border-red-600 text-white"
-                : "bg-zinc-900 border-zinc-700 hover:bg-zinc-800"}
-                `}
-                >
-            <span className="text-[16px]">
-            Server {i+1}
-            </span>
-          </button>
-        )
-        })}
-      </div>
-    </div>
+              {/* SERVER SWITCHER */}
+              <div className="flex flex-col items-start gap-4">
+                <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
+                  Select Server
+                </div>
 
+                <div className="flex flex-wrap gap-2 p-1.5 bg-zinc-900/40 rounded-lg border border-white/5">
+                  {STREAM_SERVERS.map((s, i) => (
+                    <button
+                      key={s.name}
+                      onClick={() => setServer(i)}
+                      className={`group relative px-6 py-2.5 rounded-md text-[11px] font-black uppercase tracking-widest transition-all duration-300
+                        ${server === i
+                          ? "bg-red-600 text-white shadow-lg"
+                          : "text-zinc-500 hover:text-white hover:bg-white/5"}
+                      `}
+                    >
+                      Server {i + 1}
+                    </button>
+                  ))}
+                </div>
 
-    {/* RIGHT — DETAILS PANEL */}
-    <Details media={movie} />
-  </div>
-</div>
-
-        {/* Related Movies Grid */}
+                <p className="text-[9px] text-zinc-700 font-bold uppercase tracking-widest mt-2">
+                  Optimization: 4K HDR 10bit Processing
+                </p>
+              </div>
+            </div>
 
 
-        <section className="px-4 md:px-10 pb-20 border-t border-zinc-900 pt-12">
-          <h2 className="text-2xl font-bold mb-8">Related Content</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
-            {related.slice(0, 12).map((m) => (
-              <MovieCard 
+            {/* RIGHT — DETAILS PANEL */}
+            <Details media={movie} />
+          </div>
+        </div>
+
+        {/* Related Content Grid */}
+        <section className="px-4 md:px-12 pb-24 border-t border-white/5 pt-16 bg-gradient-to-b from-transparent to-zinc-950/30">
+          <div className="flex items-center justify-between mb-12">
+            <div className="space-y-1">
+              <h2 className="text-3xl font-black italic tracking-tight uppercase">Related Content</h2>
+              <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Selected by our cinema algorithm</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
+            {related.slice(0, 14).map((m) => (
+              <MovieCard
                 key={m.id}
                 title={m.title || m.original_title}
                 posterPath={m.poster_path}

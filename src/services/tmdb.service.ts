@@ -1,45 +1,61 @@
 import tmdb from "../api/tmdb";
 
-export const getTrendingMovies = async (timeWindow = "day", page = 1) => {
-  const res = await tmdb.get(`/trending/movie/${timeWindow}`, {
-    params: { page }
-  });
+// Performance Cache: Stores results and deduplicates in-flight requests
+const cache = new Map<string, any>();
+const inFlight = new Map<string, Promise<any>>();
 
-  if (res.status !== 200) {
-    throw new Error("TMDB trending fetch failed");
+/**
+ * Standardizes fetch with Caching & Deduplication
+ * @param url The API endpoint
+ * @param params Request parameters
+ * @param ttl Time to live in milliseconds (default 5 minutes)
+ */
+const fetchWithCache = async (url: string, params: any = {}, ttl = 5 * 60 * 1000) => {
+  const cacheKey = JSON.stringify({ url, params });
+  
+  // 1. Check if request is already in-flight (Deduplication)
+  if (inFlight.has(cacheKey)) {
+    return inFlight.get(cacheKey);
   }
 
-  return res.data;
+  // 2. Check Cache
+  const cached = cache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < ttl) {
+    return cached.data;
+  }
+
+  // 3. Perform Request
+  const requestPromise = tmdb.get(url, { params }).then(res => {
+    if (res.status !== 200) throw new Error(`TMDB Fetch Failed: ${url}`);
+    
+    // Store in cache
+    cache.set(cacheKey, { data: res.data, timestamp: Date.now() });
+    inFlight.delete(cacheKey);
+    return res.data;
+  }).catch(err => {
+    inFlight.delete(cacheKey);
+    throw err;
+  });
+
+  inFlight.set(cacheKey, requestPromise);
+  return requestPromise;
+};
+
+export const getTrendingMovies = async (timeWindow = "day", page = 1) => {
+  return fetchWithCache(`/trending/movie/${timeWindow}`, { page });
 };
 
 export const getPopularMovies = async (page = 1) => {
-  const res = await tmdb.get("/movie/popular", {
-    params: { page }
-  });
-
-  if (res.status !== 200) {
-    throw new Error("TMDB popular fetch failed");
-  }
-
-  return res.data;
+  return fetchWithCache("/movie/popular", { page });
 };
 
 export const getNowPlayingMovies = async (page = 1) => {
-  const res = await tmdb.get("/movie/now_playing", {
-    params: { page }
-  });
-
-  if (res.status !== 200) {
-    throw new Error("TMDB now playing fetch failed");
-  }
-
-  return res.data;
+  return fetchWithCache("/movie/now_playing", { page });
 };
 
 export const getRandomMovie = async () => {
-  const res = await tmdb.get('/movie/top_rated');
-  
-  const movies = res?.data?.results;
+  const data = await fetchWithCache('/movie/top_rated');
+  const movies = data?.results;
   if (!Array.isArray(movies) || movies.length === 0) return null;
 
   // Mix multiple entropy sources
@@ -59,13 +75,13 @@ export const getRandomMovie = async () => {
 export const getRandomFeatured = async () => {
   // Fetch two pages for a wider pool
   const [page1, page2] = await Promise.all([
-    tmdb.get('/trending/all/day', { params: { page: 1 } }),
-    tmdb.get('/trending/all/day', { params: { page: 2 } }),
+    fetchWithCache('/trending/all/day', { page: 1 }),
+    fetchWithCache('/trending/all/day', { page: 2 }),
   ]);
 
   const combined: any[] = [
-    ...(page1?.data?.results ?? []),
-    ...(page2?.data?.results ?? []),
+    ...(page1?.results ?? []),
+    ...(page2?.results ?? []),
   ];
 
   // Quality filter: must have backdrop + decent rating
@@ -88,84 +104,49 @@ export const getRandomFeatured = async () => {
  * Searches both movies and TV shows simultaneously via /search/multi.
  */
 export const searchMulti = async (query: string, page = 1) => {
-  const res = await tmdb.get('/search/multi', {
-    params: { query, page, include_adult: false },
-  });
-  if (res.status !== 200) throw new Error('TMDB multi-search failed');
+  const data = await fetchWithCache('/search/multi', { query, page, include_adult: false });
   // Filter out people results — only keep movie / tv
-  const results = (res.data.results ?? []).filter(
+  const results = (data.results ?? []).filter(
     (r: any) => r.media_type === 'movie' || r.media_type === 'tv'
   );
-  return { ...res.data, results };
+  return { ...data, results };
 };
 
 export const getRelatedMovies = async (movieId: number, page = 1) => {
-  const res = await tmdb.get(`/movie/${movieId}/recommendations`, {
-    params: { page }
-  });
+  const data = await fetchWithCache(`/movie/${movieId}/recommendations`, { page });
 
-  if (res.status !== 200) {
-    throw new Error("TMDB related movies fetch failed");
-  }
-
-  return res.data.results; // array of MovieDetails
+  return data.results; // array of MovieDetails
 };
 
 export const getMovieVideos = async (movieId: number) => {
-  const res = await tmdb.get(`/movie/${movieId}/videos`);
-
-  if (res.status !== 200) {
-    throw new Error("TMDB movie videos fetch failed");
-  }
-
-  return res.data;
+  return fetchWithCache(`/movie/${movieId}/videos`);
 };
 
 export const getTrendingTV = async (timeWindow = "day", page = 1) => {
-  const res = await tmdb.get(`/trending/tv/${timeWindow}`, {
-    params: { page }
-  });
-  return res.data;
+  return fetchWithCache(`/trending/tv/${timeWindow}`, { page });
 };
 
 export const getPopularTV = async (page = 1) => {
-  const res = await tmdb.get("/tv/popular", {
-    params: { page }
-  });
-  return res.data;
+  return fetchWithCache("/tv/popular", { page });
 };
 
 export const getTVDetails = async (tvId: number) => {
-  const res = await tmdb.get(`/tv/${tvId}`, {
-    params: {
-      append_to_response: "credits,images,videos,content_ratings",
-    },
+  return fetchWithCache(`/tv/${tvId}`, {
+    append_to_response: "credits,images,videos,content_ratings",
   });
-  return res.data;
 };
 
 export const getTVRecommendations = async (tvId: number, page = 1) => {
-  const res = await tmdb.get(`/tv/${tvId}/recommendations`, {
-    params: { page }
-  });
-  return res.data.results;
+  const data = await fetchWithCache(`/tv/${tvId}/recommendations`, { page });
+  return data.results;
 };
 
 export const getTVSeasonDetails = async (tvId: number, seasonNumber: number) => {
-  const res = await tmdb.get(`/tv/${tvId}/season/${seasonNumber}`);
-  return res.data;
+  return fetchWithCache(`/tv/${tvId}/season/${seasonNumber}`);
 };
 
 export const getMovieDetails = async (movieId: number) => {
-  const res = await tmdb.get(`/movie/${movieId}`, {
-    params: {
-      append_to_response: "credits,images,videos",
-    },
+  return fetchWithCache(`/movie/${movieId}`, {
+    append_to_response: "credits,images,videos",
   });
-
-  if (res.status !== 200) {
-    throw new Error("TMDB movie details fetch failed");
-  }
-  return res.data;
 };
-

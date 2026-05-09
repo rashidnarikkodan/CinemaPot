@@ -1,9 +1,9 @@
 import type { MovieRow as MovieRowType } from "../../types/row";
 
 import MovieCard from "../movie/MovieCard";
+import Skeleton from "../common/Skeleton";
 import { ChevronLeft, ChevronRight, Flame, Film, Tv, Star, Gem, Globe, Shield, Smile, Ghost, Rocket, Trophy, PlayCircle, Compass } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import Loader from '../common/Loader'
 
 type Props = {
   row: MovieRowType;
@@ -29,7 +29,6 @@ const getIconForTitle = (title?: string) => {
 };
 
 const MovieRow = ({ row, isLoading }: Props) => {
-
   const navigate = useNavigate();
 
   const scroll = (direction: "left" | "right") => {
@@ -39,70 +38,70 @@ const MovieRow = ({ row, isLoading }: Props) => {
       container.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
-  const skelton = Array(10).fill(0)
 
   return (
     <section className="relative px-6 md:px-12 py-6 overflow-x-hidden">
       <div className="mb-4 flex items-center justify-between">
-  <div className="flex items-center gap-2">
-    {getIconForTitle(row?.title)}
-    <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white/90">
-      {row?.title || 'Loading...'}
-    </h2>
-  </div>
+        <div className="flex items-center gap-2">
+          {getIconForTitle(row?.title)}
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white/90">
+            {row?.title || 'Loading...'}
+          </h2>
+        </div>
 
-  <div className="flex items-center gap-2">
-    <button
-      onClick={() => scroll("left")}
-      className="w-10 h-10 flex items-center justify-center bg-black/30 hover:bg-black/60 rounded-l-3xl"
-    >
-      <ChevronLeft className="h-6 w-6 text-white" />
-    </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => scroll("left")}
+            className="w-10 h-10 flex items-center justify-center bg-black/30 hover:bg-black/60 rounded-l-3xl transition-colors"
+          >
+            <ChevronLeft className="h-6 w-6 text-white" />
+          </button>
 
-    <button
-      onClick={() => scroll("right")}
-      className="w-10 h-10 flex items-center justify-center bg-black/30 hover:bg-black/60 rounded-r-3xl"
-    >
-      <ChevronRight className="h-6 w-6 text-white" />
-    </button>
-  </div>
-</div>
+          <button
+            onClick={() => scroll("right")}
+            className="w-10 h-10 flex items-center justify-center bg-black/30 hover:bg-black/60 rounded-r-3xl transition-colors"
+          >
+            <ChevronRight className="h-6 w-6 text-white" />
+          </button>
+        </div>
+      </div>
 
       <div className="relative">
-        {/* Scroll Arrows */}
-
         <div 
           id={`row-${row?.title || ''}`}
           className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
         >
-          {isLoading?skelton.map((_,idx)=>{
-              return (
-              <div key={idx} className="w-36 sm:w-48 md:w-56 shrink-0">
-              <Loader/>
+          {isLoading ? (
+            Array(10).fill(0).map((_, idx) => (
+              <div key={idx} className="w-36 sm:w-48 md:w-56 shrink-0 space-y-3">
+                <Skeleton className="aspect-[2/3] w-full rounded-2xl" />
+                <div className="px-1 space-y-2">
+                  <Skeleton variant="text" className="w-3/4" />
+                  <Skeleton variant="text" className="w-1/2 h-3" />
+                </div>
               </div>
-              )
-          })
-          
-          :row.movies?.map((movie) => {
-            const title = movie.title || movie.name || movie.original_title;
-            const date = movie.release_date || movie.first_air_date || "N/A";
-            return (
-            <div key={movie.id} className="w-36 sm:w-48 md:w-56 shrink-0">
-              <MovieCard
-                title={title}
-                posterPath={movie.poster_path}
-                releaseYear={date.split("-")[0]}
-                rating={movie.vote_average}
-                popularity={movie.popularity}
-                voteCount={movie.vote_count}
-                tmdbId={movie.id}
-                mediaType={row.mediaType}
-                onClick={(id) => navigate(`/watch/${row.mediaType}/${id}`)}
-              />
-            </div>)
-}
+            ))
+          ) : (
+            row.movies?.map((movie) => {
+              const title = movie.title || movie.name || movie.original_title;
+              const date = movie.release_date || movie.first_air_date || "N/A";
+              return (
+                <div key={movie.id} className="w-36 sm:w-48 md:w-56 shrink-0">
+                  <MovieCard
+                    title={title}
+                    posterPath={movie.poster_path}
+                    releaseYear={date.split("-")[0]}
+                    rating={movie.vote_average}
+                    popularity={movie.popularity}
+                    voteCount={movie.vote_count}
+                    tmdbId={movie.id}
+                    mediaType={row.mediaType}
+                    onClick={(id) => navigate(`/watch/${row.mediaType}/${id}`)}
+                  />
+                </div>
+              );
+            })
           )}
-
         </div>
       </div>
     </section>
