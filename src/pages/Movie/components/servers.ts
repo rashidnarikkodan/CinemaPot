@@ -1,9 +1,9 @@
 export const STREAM_SERVERS = [
   {
     name: "VidLink",
-    movie: (id: number) => `https://vidlink.pro/movie/${id}`,
+    movie: (id: number) => `https://vidlink.pro/movie/${id}?autoplay=false`,
     tv: (id: number, s: number, e: number) =>
-      `https://vidlink.pro/tv/${id}/${s}/${e}`,
+      `https://vidlink.pro/tv/${id}/${s}/${e}?autoplay=false`,
     isPremium: true,
   },
   {

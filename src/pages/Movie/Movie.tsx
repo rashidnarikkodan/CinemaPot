@@ -73,12 +73,12 @@ const Movie = () => {
                   Select Server
                 </div>
 
-                <div className="flex overflow-x-auto snap-x snap-mandatory gap-2 pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 w-[calc(100%+2rem)] md:w-full">
+                <div className="flex flex-wrap gap-2">
                   {STREAM_SERVERS.map((s, i) => (
                     <button
                       key={s.name}
                       onClick={() => setServer(i)}
-                      className={`group relative snap-start shrink-0 px-6 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-300
+                      className={`group relative px-4 py-2 md:px-6 md:py-3 rounded-full text-[10px] md:text-[11px] font-black uppercase tracking-widest transition-all duration-300
                         ${server === i
                           ? "bg-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.3)]"
                           : "bg-zinc-900/50 border border-white/5 text-zinc-400 hover:text-white hover:bg-zinc-800"}
