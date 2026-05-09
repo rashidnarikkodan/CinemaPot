@@ -6,7 +6,7 @@ import type { Movie } from "../../../types/movie";
 const Details = ({ media: movie }: { media: Movie }) => {
   if (!movie) return null;
   return (
-    <div className="glass border border-white/5 rounded-xl p-6 space-y-6 sticky top-32">
+    <div className="bg-[#111113] border border-white/5 rounded-xl p-6 space-y-6 sticky top-32 shadow-xl shadow-black/50">
 
       {/* Poster + Title */}
       <div className="flex gap-4">

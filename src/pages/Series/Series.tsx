@@ -17,7 +17,7 @@ const Series = () => {
   const [related, setRelated] = useState<MovieDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [server, setServer] = useState(0);
-  
+
   const [season, setSeason] = useState(1);
   const [episode, setEpisode] = useState(1);
   const [seasonData, setSeasonData] = useState<any>(null);
@@ -35,7 +35,7 @@ const Series = () => {
         ]);
         setSeries(details);
         setRelated(relatedSeries);
-        
+
         // Load first season data
         const sData = await getTVSeasonDetails(seriesId, 1);
         setSeasonData(sData);
@@ -71,60 +71,76 @@ const Series = () => {
   return (
     <div className="min-h-screen bg-black text-white selection:bg-red-600/30">
       <ProtectedHeader />
-      
+
       <main className="pt-24 px-4 md:px-12 pb-24">
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-12 items-start">
-          
+
           {/* LEFT — PLAYER & CONTENT */}
           <div className="xl:col-span-3 space-y-12">
-            
+
             {/* 1. PLAYER SECTION */}
             <div className="group relative aspect-video w-full rounded-xl overflow-hidden bg-black shadow-[0_30px_60px_rgba(0,0,0,0.5)] border border-white/5 transition-all duration-700">
-              <EmbedPlayer id={series.id} server={server} type="tv" season={season} episode={episode} />
+              <EmbedPlayer 
+                id={series.id} 
+                server={server} 
+                type="tv" 
+                season={season} 
+                episode={episode} 
+                title={series.name || series.original_name}
+                backdrop={series.backdrop_path}
+              />
             </div>
 
             {/* 2. SERVER & SEASON NAVIGATION */}
-            <div className="space-y-8">
+            <div className="space-y-6">
               
               {/* SERVER SWITCHER */}
-              <div className="flex flex-col items-start gap-4">
+              <div className="space-y-3">
                 <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
                   Select Server
                 </div>
 
-                <div className="flex flex-wrap gap-2 p-1.5 bg-zinc-900/40 rounded-lg border border-white/5">
+                <div className="flex overflow-x-auto snap-x snap-mandatory gap-2 pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 w-[calc(100%+2rem)] md:w-full">
                   {STREAM_SERVERS.map((s, i) => (
                     <button
                       key={s.name}
                       onClick={() => setServer(i)}
-                      className={`group relative px-5 py-2.5 rounded-md text-[11px] font-black uppercase tracking-widest transition-all duration-300
+                      className={`group relative snap-start shrink-0 px-6 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-300
                         ${server === i
-                          ? "bg-red-600 text-white shadow-lg"
-                          : "text-zinc-500 hover:text-white hover:bg-white/5"}
+                          ? "bg-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.3)]"
+                          : "bg-zinc-900/50 border border-white/5 text-zinc-400 hover:text-white hover:bg-zinc-800"}
                       `}
                     >
-                      Server {i + 1}
+                      <span className="flex items-center gap-2">
+                        {server === i && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                        Server 0{i + 1}
+                      </span>
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* SEASON SELECTOR */}
-              <div className="flex items-center justify-between">
+              <div className="space-y-3">
                 <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
                   Select Season
                 </div>
-                <select 
-                  value={season}
-                  onChange={(e) => handleSeasonChange(parseInt(e.target.value))}
-                  className="bg-zinc-900 border border-white/5 rounded-lg px-4 py-2 text-xs font-black uppercase tracking-widest outline-none focus:border-red-600 transition-all appearance-none cursor-pointer"
-                >
+
+                <div className="flex overflow-x-auto snap-x snap-mandatory gap-2 pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 w-[calc(100%+2rem)] md:w-full">
                   {series.seasons.filter((s: any) => s.season_number > 0).map((s: any) => (
-                    <option key={s.id} value={s.season_number} className="bg-zinc-900">
+                    <button
+                      key={s.id}
+                      onClick={() => handleSeasonChange(s.season_number)}
+                      className={`group relative snap-start shrink-0 px-6 py-3 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-300
+                        ${season === s.season_number
+                          ? "bg-white text-black shadow-lg"
+                          : "bg-zinc-900/50 border border-white/5 text-zinc-400 hover:text-white hover:bg-zinc-800"}
+                      `}
+                    >
                       Season {s.season_number}
-                    </option>
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
 
               {/* EPISODE LIST */}
@@ -146,7 +162,7 @@ const Series = () => {
                   ) : (
                     seasonData?.episodes.map((ep: any) => {
                       const isReleased = ep.air_date ? new Date(ep.air_date) <= new Date() : false;
-                      
+
                       return (
                         <button
                           key={ep.id}
@@ -165,8 +181,8 @@ const Series = () => {
                         >
                           {/* Episode Thumbnail */}
                           <div className="relative shrink-0 w-24 aspect-video rounded-md overflow-hidden bg-zinc-800 shadow-sm">
-                            <img 
-                              src={ep.still_path ? `https://image.tmdb.org/t/p/w185${ep.still_path}` : series.backdrop_path ? `https://image.tmdb.org/t/p/w185${series.backdrop_path}` : ""} 
+                            <img
+                              src={ep.still_path ? `https://image.tmdb.org/t/p/w185${ep.still_path}` : series.backdrop_path ? `https://image.tmdb.org/t/p/w185${series.backdrop_path}` : ""}
                               alt=""
                               className="w-full h-full object-cover"
                               loading="lazy"
@@ -176,7 +192,7 @@ const Series = () => {
                                 <Play className="w-5 h-5 text-white fill-white" />
                               </div>
                             )}
-                            
+
                             {!isReleased && (
                               <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center">
                                 <span className="text-[7px] font-black uppercase text-white tracking-[0.05em]">Locked</span>
@@ -217,7 +233,7 @@ const Series = () => {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
             {related.slice(0, 14).map((m) => (
-              <MovieCard 
+              <MovieCard
                 key={m.id}
                 title={m.name || m.original_title}
                 posterPath={m.poster_path}

@@ -6,10 +6,11 @@ type EmbedPlayerProps = {
   type?: "movie" | "tv";
   season?: number;
   episode?: number;
+  title?: string;
+  backdrop?: string;
 };
 
 const EmbedPlayer = ({ id, server, type = "movie", season = 1, episode = 1 }: EmbedPlayerProps) => {
-
   const selectedServer = STREAM_SERVERS[server];
 
   if (!selectedServer) {
@@ -21,14 +22,19 @@ const EmbedPlayer = ({ id, server, type = "movie", season = 1, episode = 1 }: Em
     : selectedServer.movie(id);
 
   return (
-    <iframe
-      src={src}
-      className="h-full w-full"
-      allowFullScreen
-      referrerPolicy="no-referrer"
-    />
+    <div className="relative w-full h-full">
+      <iframe
+        src={src}
+        className="w-full h-full"
+        allowFullScreen
+        referrerPolicy="no-referrer"
+      />
+      {/* Invisible Safe Scroll Zones (Thinner to prevent blocking controls) */}
+      <div className="absolute top-0 left-0 w-full h-6 z-10 pointer-events-auto" /> {/* Top edge */}
+      <div className="absolute top-0 left-0 w-8 h-full z-10 pointer-events-auto" /> {/* Left edge */}
+      <div className="absolute top-0 right-0 w-8 h-full z-10 pointer-events-auto" /> {/* Right edge */}
+    </div>
   );
 };
-
 
 export default EmbedPlayer;
