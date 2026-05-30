@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Menu, X, Search } from "lucide-react";
+import { Menu, X, Search, Info } from "lucide-react";
 import SearchModal from "./Search";
+import BraveRecommendation from "./BraveRecommendation";
 import Icon from '../../assets/icons/favicon.png'
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
+  const [isBraveInfoOpen, setIsBraveInfoOpen] = useState(false);
   const navigate = useNavigate()
 
   const navItems = [
@@ -73,6 +75,33 @@ const Header = () => {
 
         {/* Right */}
         <div className="flex items-center gap-4 sm:gap-6 text-zinc-400">
+          <div className="relative flex items-center justify-center">
+            <button
+              onClick={() => setIsBraveInfoOpen(!isBraveInfoOpen)}
+              onMouseEnter={() => setIsBraveInfoOpen(true)}
+              onMouseLeave={() => setIsBraveInfoOpen(false)}
+              className={`transition-all duration-300 hover:scale-110 p-2 rounded-full hover:bg-white/5 ${isBraveInfoOpen ? 'text-white bg-white/5' : 'text-zinc-400 hover:text-white'}`}
+              aria-label="Recommendation info"
+              aria-expanded={isBraveInfoOpen}
+            >
+              <Info size={22} aria-hidden="true" />
+            </button>
+            
+            {/* Popover Wrapper */}
+            <div 
+              className={`absolute top-full right-[-60px] md:right-0 pt-3 transition-all duration-300 transform z-[100] origin-top-right ${isBraveInfoOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'}`}
+              onMouseEnter={() => setIsBraveInfoOpen(true)}
+              onMouseLeave={() => setIsBraveInfoOpen(false)}
+            >
+              {/* Inner container */}
+              <div className="relative">
+                {/* Arrow */}
+                <div className="absolute -top-2 right-[72px] md:right-4 w-4 h-4 bg-zinc-900 border-l border-t border-orange-500/20 rotate-45 z-[-1]" />
+                <BraveRecommendation showDismiss={true} onDismiss={() => setIsBraveInfoOpen(false)} />
+              </div>
+            </div>
+          </div>
+
           <button
             onClick={() => setSearchOpen(true)}
             className="hover:text-white transition-all duration-300 hover:scale-110 p-2 rounded-full hover:bg-white/5"

@@ -41,26 +41,44 @@ const HeroBanner = () => {
     </>
   );
 
-  const backgroundImage = `https://image.tmdb.org/t/p/original${movie?.backdrop_path || ""}`;
+  const desktopBg = `https://image.tmdb.org/t/p/original${movie?.backdrop_path || ""}`;
+  const mobileBg = movie?.poster_path 
+    ? `https://image.tmdb.org/t/p/original${movie.poster_path}` 
+    : desktopBg;
 
   return (
     <div
-      className="relative min-h-[75vh] bg-zinc-950 overflow-hidden pt-16"
+      className="relative min-h-[75vh] md:min-h-[85vh] bg-zinc-950 overflow-hidden pt-16"
     >
-      {/* Background Layer with scaling to prevent pixelation */}
+      {/* Desktop Background Layer */}
       <div
-        className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out"
+        className="hidden md:block absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out opacity-80"
         style={{
-          backgroundImage: `url(${backgroundImage})`,
+          backgroundImage: `url(${desktopBg})`,
           transform: 'scale(1.05)',
+        }}
+      />
+      
+      {/* Mobile Background Layer */}
+      <div
+        className="block md:hidden absolute inset-0 bg-cover bg-top transition-opacity duration-1000 ease-in-out opacity-80"
+        style={{
+          backgroundImage: `url(${mobileBg})`,
         }}
       />
 
       <div
-        className="pointer-events-none absolute inset-0"
+        className="pointer-events-none absolute inset-0 hidden md:block"
         style={{
           background:
             "radial-gradient(circle at 30% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.9) 100%)",
+        }}
+      />
+      
+      <div
+        className="pointer-events-none absolute inset-0 block md:hidden"
+        style={{
+          background: "linear-gradient(to bottom, rgba(9,9,11,0.1) 0%, rgba(9,9,11,0.5) 40%, rgba(9,9,11,0.95) 75%, rgba(9,9,11,1) 100%)",
         }}
       />
 

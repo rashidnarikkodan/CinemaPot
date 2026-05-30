@@ -4,6 +4,8 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import Loader from "../components/common/Loader";
 
+import GlobalBravePopup from "../components/common/GlobalBravePopup";
+
 // Lazy load pages for bundle optimization
 const LandingPage = lazy(() => import("../pages/Land/LandPage"));
 const Browse = lazy(() => import("../pages/Browse/Browse"));
@@ -27,7 +29,7 @@ function App() {
         </Suspense>
       </BrowserRouter>
 
-
+      <GlobalBravePopup />
       <SpeedInsights />
       <Analytics />
     </>
