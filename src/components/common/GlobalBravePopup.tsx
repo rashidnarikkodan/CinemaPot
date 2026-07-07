@@ -8,9 +8,10 @@ const GlobalBravePopup = () => {
     const checkAndShowPopup = async () => {
       // Check if the user is already using Brave browser
       let isBrave = false;
-      if ((navigator as any).brave && typeof (navigator as any).brave.isBrave === 'function') {
+      const nav = navigator as Navigator & { brave?: { isBrave?: () => Promise<boolean> } };
+      if (nav.brave && typeof nav.brave.isBrave === 'function') {
         try {
-          isBrave = await (navigator as any).brave.isBrave();
+          isBrave = await nav.brave.isBrave();
         } catch (error) {
           console.error("Error checking Brave status:", error);
         }

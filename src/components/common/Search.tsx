@@ -39,10 +39,10 @@ const SearchModal = ({onClose}:{onClose:()=>void}) => {
 
       const formatted = data.results.map((m: MovieDetails) => ({
         id: m.id,
-        title: m.title || m.name,
+        title: m.title || m.name || "",
         year: (m.release_date || m.first_air_date || "").split("-")[0],
         genre: "Movie",
-        poster: m.poster_path,
+        poster: m.poster_path || undefined,
       }));
 
       setResults(formatted);

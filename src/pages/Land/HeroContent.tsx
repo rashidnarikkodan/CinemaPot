@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import { searchMulti } from "../../services/tmdb.service";
-import Icon from '../../assets/icons/favicon.png'
+
 
 interface Movie {
   id: number;
@@ -27,14 +26,25 @@ const HeroContent = () => {
     setIsLoading(true);
 
     try {
+      const { searchMulti } = await import("../../services/tmdb.service");
       const data = await searchMulti(query);
 
-      const formatted = data.results.map((m: any) => ({
+      interface RawSearchResult {
+        id: number;
+        title?: string;
+        name?: string;
+        release_date?: string;
+        first_air_date?: string;
+        media_type?: "movie" | "tv";
+        poster_path?: string | null;
+      }
+
+      const formatted = data.results.map((m: RawSearchResult) => ({
         id: m.id,
-        title: m.title || m.name,
+        title: m.title || m.name || "",
         year: (m.release_date || m.first_air_date || "").split("-")[0],
         genre: m.media_type === "tv" ? "TV Series" : "Movie",
-        poster: m.poster_path,
+        poster: m.poster_path || undefined,
         mediaType: m.media_type || "movie"
       }));
 
@@ -104,7 +114,7 @@ const HeroContent = () => {
         {/* Logo */}
         <div className={`mb-4 flex items-center justify-center gap-3 transition-all duration-300 ${hasValue ? 'blur-sm opacity-50' : ''}`}>
           <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-red-500">
-            <img src={Icon} alt="" />
+            <img src="/favicon.png" alt="" />
           </div>
           <span className="text-3xl font-black tracking-tighter">
             CINEMA<span className="text-red-600">POT.</span>

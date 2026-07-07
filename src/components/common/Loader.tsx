@@ -1,4 +1,3 @@
-import { Zap } from "lucide-react";
 
 const Loader = () => {
   return (

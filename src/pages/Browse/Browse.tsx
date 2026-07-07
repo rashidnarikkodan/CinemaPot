@@ -61,7 +61,7 @@ const Browse = () => {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
             {movies.length > 0 ? (
-              movies.map((movie: any) => {
+              movies.map((movie: MovieDetails) => {
                 const media = movie.media_type || (type as "movie" | "tv");
                 const title = movie.title || movie.name || movie.original_title;
                 const date = movie.release_date || movie.first_air_date || "N/A";
@@ -76,7 +76,19 @@ const Browse = () => {
                     voteCount={movie.vote_count}
                     tmdbId={movie.id}
                     mediaType={media}
-                    onClick={(id) => navigate(`/watch/${media}/${id}`)}
+                    onClick={(id) => navigate(`/watch/${media}/${id}`, {
+                      state: {
+                        movie: {
+                          id: movie.id,
+                          title: title,
+                          poster_path: movie.poster_path,
+                          release_date: date,
+                          vote_average: movie.vote_average,
+                          popularity: movie.popularity,
+                          vote_count: movie.vote_count
+                        }
+                      }
+                    })}
                   />
                 );
               })

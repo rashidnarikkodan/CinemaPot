@@ -1,23 +1,35 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { getMovieDetails, getRelatedMovies } from "../../services/tmdb.service";
 import ProtectedHeader from "../../components/common/Header";
 import EmbedPlayer from "./components/Embeded";
-import Loader from "../../components/common/Loader";
 import MovieCard from "../../components/movie/MovieCard";
 import type { Movie as TMovie, MovieDetails } from "../../types/movie";
 import Details from "./components/Details";
 import { STREAM_SERVERS } from "./components/servers";
-import { ChevronDown, Server as ServerIcon } from "lucide-react";
+import Skeleton from "../../components/common/Skeleton";
 
 const Movie = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [movie, setMovie] = useState<TMovie | null>(null);
+  const location = useLocation();
+
+  // Use location state if available for instant rendering (prevents LCP delay)
+  const stateMovie = location.state?.movie as TMovie | null;
+  const [movie, setMovie] = useState<TMovie | null>(stateMovie || null);
   const [related, setRelated] = useState<MovieDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [server, setServer] = useState(0);
-  const [isServerDropdownOpen, setIsServerDropdownOpen] = useState(false);
+
+  // Sync state if id changes (like related movie click)
+  useEffect(() => {
+    if (stateMovie && stateMovie.id === parseInt(id || "")) {
+      setMovie(stateMovie);
+    } else {
+      setMovie(null);
+    }
+    setRelated([]);
+  }, [id, stateMovie]);
 
   useEffect(() => {
     const fetchMovieData = async () => {
@@ -42,7 +54,29 @@ const Movie = () => {
     window.scrollTo(0, 0);
   }, [id]);
 
-  if (loading) return <div className="h-screen w-full flex items-center justify-center bg-[#0a0a0a]"><Loader /></div>;
+  // Show full page loader ONLY if we don't have ANY movie data (direct URL load)
+  if (loading && !movie) {
+    return (
+      <div className="min-h-screen bg-black text-white">
+        <ProtectedHeader />
+        <main className="pt-24 px-4 md:px-12 pb-16">
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-12 items-start">
+            <div className="xl:col-span-3 space-y-12">
+              <Skeleton className="aspect-video w-full rounded-xl animate-pulse" />
+              <div className="space-y-3">
+                <Skeleton className="w-24 h-4 rounded animate-pulse" />
+                <div className="flex gap-2">
+                  <Skeleton className="w-28 h-10 rounded-full animate-pulse" />
+                  <Skeleton className="w-28 h-10 rounded-full animate-pulse" />
+                </div>
+              </div>
+            </div>
+            <Details media={null} loading={true} />
+          </div>
+        </main>
+      </div>
+    );
+  }
   if (!movie) return <div className="h-screen w-full flex items-center justify-center bg-[#0a0a0a] text-white">Movie not found</div>;
 
 
@@ -63,7 +97,7 @@ const Movie = () => {
                   id={movie.id}
                   server={server}
                   type="movie"
-                  title={movie.title || (movie as any).original_title}
+                  title={movie.title || movie.original_title}
                 />
               </div>
 
@@ -100,7 +134,7 @@ const Movie = () => {
 
 
             {/* RIGHT — DETAILS PANEL */}
-            <Details media={movie} />
+            <Details media={movie} loading={loading} />
           </div>
         </div>
 
@@ -114,20 +148,42 @@ const Movie = () => {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
-            {related.slice(0, 14).map((m) => (
-              <MovieCard
-                key={m.id}
-                title={m.title || m.original_title}
-                posterPath={m.poster_path}
-                releaseYear={m.release_date?.split("-")[0] || "N/A"}
-                rating={m.vote_average}
-                popularity={m.popularity}
-                voteCount={m.vote_count}
-                tmdbId={m.id}
-                mediaType="movie"
-                onClick={(id) => navigate(`/watch/movie/${id}`)}
-              />
-            ))}
+            {loading && related.length === 0 ? (
+              Array(14).fill(0).map((_, i) => (
+                <div key={i} className="space-y-3">
+                  <Skeleton className="aspect-[2/3] w-full rounded-2xl animate-pulse" />
+                  <Skeleton variant="text" className="w-3/4 animate-pulse" />
+                  <Skeleton variant="text" className="w-1/2 h-3 animate-pulse" />
+                </div>
+              ))
+            ) : (
+              related.slice(0, 14).map((m) => (
+                <MovieCard
+                  key={m.id}
+                  title={m.title || m.original_title}
+                  posterPath={m.poster_path}
+                  releaseYear={m.release_date?.split("-")[0] || "N/A"}
+                  rating={m.vote_average}
+                  popularity={m.popularity}
+                  voteCount={m.vote_count}
+                  tmdbId={m.id}
+                  mediaType="movie"
+                  onClick={(id) => navigate(`/watch/movie/${id}`, {
+                    state: {
+                      movie: {
+                        id: m.id,
+                        title: m.title || m.original_title,
+                        poster_path: m.poster_path,
+                        release_date: m.release_date,
+                        vote_average: m.vote_average,
+                        popularity: m.popularity,
+                        vote_count: m.vote_count
+                      }
+                    }
+                  })}
+                />
+              ))
+            )}
           </div>
         </section>
       </main>

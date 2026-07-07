@@ -96,7 +96,19 @@ const MovieRow = ({ row, isLoading }: Props) => {
                     voteCount={movie.vote_count}
                     tmdbId={movie.id}
                     mediaType={row.mediaType}
-                    onClick={(id) => navigate(`/watch/${row.mediaType}/${id}`)}
+                    onClick={(id) => navigate(`/watch/${row.mediaType}/${id}`, {
+                      state: {
+                        movie: {
+                          id: movie.id,
+                          title: title,
+                          poster_path: movie.poster_path,
+                          release_date: date,
+                          vote_average: movie.vote_average,
+                          popularity: movie.popularity,
+                          vote_count: movie.vote_count
+                        }
+                      }
+                    })}
                   />
                 </div>
               );

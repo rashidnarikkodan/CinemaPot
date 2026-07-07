@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { X, ExternalLink } from "lucide-react";
 
 interface BraveRecommendationProps {
@@ -7,18 +7,20 @@ interface BraveRecommendationProps {
   showDismiss?: boolean;
 }
 
-const BraveRecommendation = ({ className = "", onDismiss, showDismiss = false }: BraveRecommendationProps) => {
-  const [storeLink, setStoreLink] = useState("https://brave.com/download/");
+const getInitialStoreLink = () => {
+  if (typeof window === "undefined") return "https://brave.com/download/";
+  const win = window as Window & { opera?: string; MSStream?: unknown };
+  const userAgent = navigator.userAgent || navigator.vendor || win.opera || "";
+  if (/android/i.test(userAgent)) {
+    return "https://play.google.com/store/apps/details?id=com.brave.browser";
+  } else if (/iPad|iPhone|iPod/.test(userAgent) && !win.MSStream) {
+    return "https://apps.apple.com/us/app/brave-private-web-browser/id1052879175";
+  }
+  return "https://brave.com/download/";
+};
 
-  useEffect(() => {
-    // Detect OS for optimal store link
-    const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
-    if (/android/i.test(userAgent)) {
-      setStoreLink("https://play.google.com/store/apps/details?id=com.brave.browser");
-    } else if (/iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream) {
-      setStoreLink("https://apps.apple.com/us/app/brave-private-web-browser/id1052879175");
-    }
-  }, []);
+const BraveRecommendation = ({ className = "", onDismiss, showDismiss = false }: BraveRecommendationProps) => {
+  const [storeLink] = useState(getInitialStoreLink);
 
   return (
     <div className={`flex max-w-[360px] w-max flex-col gap-4 rounded-2xl border border-orange-500/20 bg-gradient-to-br from-zinc-900/95 to-black/98 p-5 shadow-[0_8px_32px_-4px_rgba(251,84,43,0.15)] backdrop-blur-xl group relative ${className}`}>

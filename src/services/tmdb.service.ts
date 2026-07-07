@@ -1,8 +1,9 @@
 import tmdb from "../api/tmdb";
+import type { MovieDetails } from "../types/movie";
 
 // Performance Cache: Stores results and deduplicates in-flight requests
-const cache = new Map<string, any>();
-const inFlight = new Map<string, Promise<any>>();
+const cache = new Map<string, { data: unknown; timestamp: number }>();
+const inFlight = new Map<string, Promise<unknown>>();
 
 /**
  * Standardizes fetch with Caching & Deduplication
@@ -10,18 +11,18 @@ const inFlight = new Map<string, Promise<any>>();
  * @param params Request parameters
  * @param ttl Time to live in milliseconds (default 5 minutes)
  */
-const fetchWithCache = async (url: string, params: any = {}, ttl = 5 * 60 * 1000) => {
+const fetchWithCache = async <T = any>(url: string, params: Record<string, unknown> = {}, ttl = 5 * 60 * 1000): Promise<T> => {
   const cacheKey = JSON.stringify({ url, params });
   
   // 1. Check if request is already in-flight (Deduplication)
   if (inFlight.has(cacheKey)) {
-    return inFlight.get(cacheKey);
+    return inFlight.get(cacheKey) as Promise<T>;
   }
 
   // 2. Check Cache
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < ttl) {
-    return cached.data;
+    return cached.data as T;
   }
 
   // 3. Perform Request
@@ -31,14 +32,14 @@ const fetchWithCache = async (url: string, params: any = {}, ttl = 5 * 60 * 1000
     // Store in cache
     cache.set(cacheKey, { data: res.data, timestamp: Date.now() });
     inFlight.delete(cacheKey);
-    return res.data;
+    return res.data as T;
   }).catch(err => {
     inFlight.delete(cacheKey);
     throw err;
   });
 
   inFlight.set(cacheKey, requestPromise);
-  return requestPromise;
+  return requestPromise as Promise<T>;
 };
 
 export const getTrendingMovies = async (timeWindow = "day", page = 1) => {
@@ -79,7 +80,7 @@ export const getRandomFeatured = async () => {
     fetchWithCache('/trending/all/day', { page: 2 }),
   ]);
 
-  const combined: any[] = [
+  const combined: MovieDetails[] = [
     ...(page1?.results ?? []),
     ...(page2?.results ?? []),
   ];
@@ -107,7 +108,7 @@ export const searchMulti = async (query: string, page = 1) => {
   const data = await fetchWithCache('/search/multi', { query, page, include_adult: false });
   // Filter out people results — only keep movie / tv
   const results = (data.results ?? []).filter(
-    (r: any) => r.media_type === 'movie' || r.media_type === 'tv'
+    (r: MovieDetails) => r.media_type === 'movie' || r.media_type === 'tv'
   );
   return { ...data, results };
 };

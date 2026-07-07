@@ -11,7 +11,7 @@ const LandingPage = lazy(() => import("../pages/Land/LandPage"));
 const Browse = lazy(() => import("../pages/Browse/Browse"));
 const Movie = lazy(() => import("../pages/Movie/Movie"));
 const Series = lazy(() => import("../pages/Series/Series"));
-import Home from "../pages/Home/Home";
+const Home = lazy(() => import("../pages/Home/Home"));
 
 function App() {
   return (

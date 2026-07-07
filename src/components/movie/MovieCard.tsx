@@ -38,8 +38,16 @@ const MovieCard: React.FC<MovieCardProps> = memo(({
   const handleMouseEnter = () => {
     if (mediaType === 'movie') {
       getMovieDetails(tmdbId);
+      import("../../pages/Movie/Movie");
     } else {
       getTVDetails(tmdbId);
+      import("../../pages/Series/Series");
+    }
+
+    // Prefetch LCP image to HTTP cache
+    if (posterPath) {
+      const img = new Image();
+      img.src = `https://image.tmdb.org/t/p/w500${posterPath}`;
     }
   };
 
