@@ -91,6 +91,7 @@ const MovieRow = ({ row, isLoading }: Props) => {
                     title={title}
                     posterPath={movie.poster_path}
                     releaseYear={date.split("-")[0]}
+                    releaseDate={movie.release_date || movie.first_air_date}
                     rating={movie.vote_average}
                     popularity={movie.popularity}
                     voteCount={movie.vote_count}

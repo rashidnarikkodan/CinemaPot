@@ -11,7 +11,7 @@ const Header = () => {
   const navigate = useNavigate()
 
   const navItems = [
-    { name: "Home", path: "/home" },
+    { name: "Home", path: "/" },
     { name: "TV Shows", path: "/browse?type=tv" },
     { name: "Movies", path: "/browse?type=movie" },
     { name: "New & Popular", path: "/browse?sort=new" },
@@ -44,9 +44,8 @@ const Header = () => {
             onKeyDown={(e) => e.key === 'Enter' && navigate('/')}
             aria-label="CinemaPot Home"
           >
-            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-red-600 group-hover:bg-red-700 transition-all duration-300 group-hover:rotate-12 shadow-lg shadow-red-900/40 overflow-hidden">
-              <img src="/favicon.png" alt="" className="w-6 h-6 object-contain" aria-hidden="true" />
-              <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent pointer-events-none" />
+            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden group-hover:rotate-12 transition-transform duration-300 shadow-lg shadow-red-900/40">
+              <img src="/favicon.png" alt="" className="w-full h-full object-cover" aria-hidden="true" />
             </div>
             <span className="text-2xl font-black tracking-tighter text-white uppercase italic">
               CINEMA<span className="text-red-600">POT</span>
@@ -129,8 +128,8 @@ const Header = () => {
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
           <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-red-600">
-              <span className="text-white text-[10px] font-black">▶</span>
+            <div className="flex h-6 w-6 items-center justify-center rounded-md overflow-hidden">
+              <img src="/favicon.png" alt="" className="w-full h-full object-cover" aria-hidden="true" />
             </div>
             <span className="text-lg font-black tracking-tighter text-white">
               CINEMA<span className="text-red-600">POT</span>

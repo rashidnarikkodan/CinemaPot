@@ -151,3 +151,21 @@ export const getMovieDetails = async (movieId: number) => {
     append_to_response: "credits,images,videos",
   });
 };
+
+/**
+ * Searches for production companies by name via /search/company.
+ */
+export const searchCompany = async (query: string, page = 1) => {
+  return fetchWithCache('/search/company', { query, page });
+};
+
+/**
+ * Fetches movies associated with a specific production company via /discover/movie.
+ */
+export const getMoviesByCompany = async (companyId: number, page = 1) => {
+  return fetchWithCache('/discover/movie', {
+    with_companies: companyId,
+    sort_by: 'popularity.desc',
+    page,
+  });
+};

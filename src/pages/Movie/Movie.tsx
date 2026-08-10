@@ -163,6 +163,7 @@ const Movie = () => {
                   title={m.title || m.original_title}
                   posterPath={m.poster_path}
                   releaseYear={m.release_date?.split("-")[0] || "N/A"}
+                  releaseDate={m.release_date}
                   rating={m.vote_average}
                   popularity={m.popularity}
                   voteCount={m.vote_count}

@@ -1,11 +1,12 @@
 import React, { memo } from "react";
-import { Star, TrendingUp, Users } from "lucide-react";
+import { Star, TrendingUp, Users, Clock } from "lucide-react";
 import { getMovieDetails, getTVDetails } from "../../services/tmdb.service";
 
 interface MovieCardProps {
   title: string;
   posterPath: string | null;
   releaseYear: string | number;
+  releaseDate?: string; // Full ISO date e.g. "2025-11-15" — used to detect unreleased content
   runtime?: string | number;
   rating: number;
   popularity?: number;
@@ -23,6 +24,7 @@ const MovieCard: React.FC<MovieCardProps> = memo(({
   title,
   posterPath,
   releaseYear,
+  releaseDate,
   runtime = "N/A",
   rating,
   popularity,
@@ -32,10 +34,16 @@ const MovieCard: React.FC<MovieCardProps> = memo(({
   mediaType = "movie",
   priority = false
 }) => {
+  // Determine if this content hasn't been released yet
+  const isUnreleased = releaseDate
+    ? new Date(releaseDate) > new Date()
+    : false;
   const IMAGE_BASE = "https://image.tmdb.org/t/p/";
   
   // Performance: Prefetch data on hover (Intent-based loading)
+  // Skip prefetch for unreleased content — no detail page data exists yet
   const handleMouseEnter = () => {
+    if (isUnreleased) return;
     if (mediaType === 'movie') {
       getMovieDetails(tmdbId);
       import("../../pages/Movie/Movie");
@@ -73,10 +81,20 @@ const MovieCard: React.FC<MovieCardProps> = memo(({
           srcSet={srcSet}
           sizes="(max-width: 640px) 185px, (max-width: 1024px) 342px, 500px"
           alt={title}
-          className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-1"
+          className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-1 ${isUnreleased ? "brightness-75" : ""}`}
           loading={priority ? "eager" : "lazy"}
           decoding="async"
         />
+
+        {/* Coming Soon ribbon — only shown for unreleased content */}
+        {isUnreleased && (
+          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 rounded-full bg-amber-500/90 backdrop-blur-sm px-2.5 py-1 shadow-lg shadow-black/40">
+            <Clock className="h-3 w-3 text-black shrink-0" />
+            <span className="text-[10px] font-black uppercase tracking-wide text-black leading-none">
+              Coming Soon
+            </span>
+          </div>
+        )}
         
         {/* Modern Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-5">

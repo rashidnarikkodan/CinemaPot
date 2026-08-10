@@ -322,6 +322,7 @@ const Series = () => {
                   title={m.name || m.original_title}
                   posterPath={m.poster_path}
                   releaseYear={m.first_air_date?.split("-")[0] || "N/A"}
+                  releaseDate={m.first_air_date}
                   rating={m.vote_average}
                   popularity={m.popularity}
                   voteCount={m.vote_count}

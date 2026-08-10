@@ -95,3 +95,10 @@ export type SpokenLanguage = {
   iso_639_1: string;
   name: string;
 };
+
+export type CompanySearchResult = {
+  id: number;
+  name: string;
+  logo_path: string | null;
+  origin_country: string;
+};
