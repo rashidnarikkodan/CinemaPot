@@ -46,10 +46,8 @@ const MovieCard: React.FC<MovieCardProps> = memo(({
     if (isUnreleased) return;
     if (mediaType === 'movie') {
       getMovieDetails(tmdbId);
-      import("../../pages/Movie/Movie");
     } else {
       getTVDetails(tmdbId);
-      import("../../pages/Series/Series");
     }
 
     // Prefetch LCP image to HTTP cache

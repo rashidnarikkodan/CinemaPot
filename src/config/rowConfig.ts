@@ -26,7 +26,7 @@ export const ROW_CONFIG: RowConfig[] = [
     options: { timeWindow: "day" },
   },
   {
-    title: "Trending Today — TV Shows",
+    title: "Trending Today — Series",
     mediaType: "tv",
     fetcher: "trending",
     options: { timeWindow: "day" },
@@ -56,7 +56,7 @@ export const ROW_CONFIG: RowConfig[] = [
     },
   },
   {
-    title: "Newest TV Shows",
+    title: "Newest Series",
     mediaType: "tv",
     fetcher: "discover",
     params: {
@@ -80,7 +80,7 @@ export const ROW_CONFIG: RowConfig[] = [
     fetcher: "topRated",
   },
   {
-    title: "Top Rated TV Shows",
+    title: "Top Rated Series",
     mediaType: "tv",
     fetcher: "topRated",
   },
@@ -98,7 +98,7 @@ export const ROW_CONFIG: RowConfig[] = [
     },
   },
   {
-    title: "Hidden Gem TV Shows",
+    title: "Hidden Gem Series",
     mediaType: "tv",
     fetcher: "discover",
     params: {
@@ -116,7 +116,7 @@ export const ROW_CONFIG: RowConfig[] = [
     fetcher: "popular",
   },
   {
-    title: "Popular TV Shows",
+    title: "Popular Series",
     mediaType: "tv",
     fetcher: "popular",
   },

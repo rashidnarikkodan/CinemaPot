@@ -13,7 +13,7 @@ const inFlight = new Map<string, Promise<unknown>>();
  */
 const fetchWithCache = async <T = any>(url: string, params: Record<string, unknown> = {}, ttl = 5 * 60 * 1000): Promise<T> => {
   const cacheKey = JSON.stringify({ url, params });
-  
+
   // 1. Check if request is already in-flight (Deduplication)
   if (inFlight.has(cacheKey)) {
     return inFlight.get(cacheKey) as Promise<T>;
@@ -28,7 +28,7 @@ const fetchWithCache = async <T = any>(url: string, params: Record<string, unkno
   // 3. Perform Request
   const requestPromise = tmdb.get(url, { params }).then(res => {
     if (res.status !== 200) throw new Error(`TMDB Fetch Failed: ${url}`);
-    
+
     // Store in cache
     cache.set(cacheKey, { data: res.data, timestamp: Date.now() });
     inFlight.delete(cacheKey);
@@ -102,7 +102,7 @@ export const getRandomFeatured = async () => {
 };
 
 /**
- * Searches both movies and TV shows simultaneously via /search/multi.
+ * Searches both movies and Series simultaneously via /search/multi.
  */
 export const searchMulti = async (query: string, page = 1) => {
   const data = await fetchWithCache('/search/multi', { query, page, include_adult: false });

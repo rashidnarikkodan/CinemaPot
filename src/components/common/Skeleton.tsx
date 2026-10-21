@@ -10,7 +10,7 @@ interface SkeletonProps {
  * Used to reduce CLS and improve perceived performance
  */
 const Skeleton: React.FC<SkeletonProps> = ({ className = "", variant = "rectangle" }) => {
-  const baseClass = "relative overflow-hidden bg-zinc-900/50";
+  const baseClass = "relative overflow-hidden bg-zinc-900/60 backdrop-blur-sm border border-white/[0.03]";
   
   const variantClasses = {
     rectangle: "rounded-lg",
@@ -21,7 +21,7 @@ const Skeleton: React.FC<SkeletonProps> = ({ className = "", variant = "rectangl
   return (
     <div className={`${baseClass} ${variantClasses[variant]} ${className}`}>
       {/* Shimmer Effect */}
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.8s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
     </div>
   );
 };

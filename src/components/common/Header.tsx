@@ -16,20 +16,20 @@ const Header = () => {
   return (
     <>
       <header
-        className="fixed top-0 left-0 z-40 w-full glass transition-all duration-300"
+        className="fixed top-0 left-0 z-40 w-full backdrop-blur-xl bg-black/60 border-none transition-all duration-300 select-none"
         role="banner"
       >
-        {/* ─── Mobile Tiny Top Bar (Title + Search Only) ─── */}
-        <div className="flex md:hidden h-12 items-center justify-between px-4">
+        {/* ─── Mobile Top Bar (Enlarged size, Brand Only) ─── */}
+        <div className="flex md:hidden h-15 items-center px-5">
           {/* Left: Brand */}
           <div
             onClick={() => navigate("/")}
-            className="flex items-center gap-2 cursor-pointer"
+            className="flex items-center gap-2.5 cursor-pointer active:scale-95 transition-transform"
             role="link"
             tabIndex={0}
             aria-label="CinemaPot Home"
           >
-            <div className="h-5 w-5 rounded-md overflow-hidden shadow-sm">
+            <div className="h-7 w-7 rounded-lg overflow-hidden shadow-md shadow-red-950/40 shrink-0">
               <img
                 src="/favicon.png"
                 alt=""
@@ -37,11 +37,10 @@ const Header = () => {
                 aria-hidden="true"
               />
             </div>
-            <span className="text-xs font-black tracking-tight text-white uppercase italic">
+            <span className="text-base font-black tracking-tighter text-white uppercase italic">
               CINEMA<span className="text-red-600">POT</span>
             </span>
           </div>
-
         </div>
 
         {/* ─── Desktop Header ─── */}

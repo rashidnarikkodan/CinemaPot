@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Building2, Film, Tv, ChevronDown, Search } from "lucide-react";
+import { Building2, Film, Tv, ChevronDown, Search, Flame, Star, Compass } from "lucide-react";
 import Header from "../../components/common/Header";
 import { fetchMovies } from "../../utils/fetchMovies";
 import { searchMulti, getMoviesByCompany } from "../../services/tmdb.service";
 import MovieCard from "../../components/movie/MovieCard";
-import Loader from "../../components/common/Loader";
+import Skeleton from "../../components/common/Skeleton";
 import type { MovieDetails } from "../../types/movie";
 import { ROW_CONFIG } from "../../config/rowConfig";
 
@@ -41,28 +41,46 @@ const CompanyBanner = ({
 const PageHeader = ({
   query,
   type,
+  sort,
   total,
+  loading = false,
 }: {
   query: string | null;
   type: string;
+  sort: string | null;
   total: number;
+  loading?: boolean;
 }) => {
-  const icon =
-    type === "tv" ? <Tv size={22} className="text-blue-400" /> : <Film size={22} className="text-red-400" />;
-  const title = query
+  let icon = type === "tv" ? <Tv size={22} className="text-blue-400" /> : <Film size={22} className="text-red-400" />;
+  let title = query
     ? `Results for "${query}"`
     : type === "tv"
-    ? "TV Shows"
-    : "Movies";
+      ? "Series"
+      : "Movies";
+
+  if (sort === "new") {
+    icon = <Flame size={22} className="text-red-500" />;
+    title = "New & Popular";
+  } else if (sort === "top") {
+    icon = <Star size={22} className="text-yellow-400" />;
+    title = type === "tv" ? "Top Series" : "Top Rated Movies";
+  } else if (sort === "trending") {
+    icon = <Compass size={22} className="text-blue-400" />;
+    title = type === "tv" ? "Trending Series" : "Trending Now";
+  }
 
   return (
-    <div className="mb-10 flex items-center gap-4">
+    <div className="mb-8 md:mb-10 flex items-center gap-4">
       <span>{icon}</span>
       <div>
-        <h1 className="text-3xl font-black text-white">{title}</h1>
-        <p className="text-zinc-500 mt-1 text-sm">
-          {total} title{total !== 1 ? "s" : ""} found
-        </p>
+        <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">{title}</h1>
+        {loading ? (
+          <div className="h-4 w-28 bg-white/5 rounded animate-pulse mt-1" />
+        ) : (
+          <p className="text-zinc-500 mt-1 text-sm font-medium">
+            {total} title{total !== 1 ? "s" : ""} found
+          </p>
+        )}
       </div>
     </div>
   );
@@ -92,6 +110,7 @@ const Browse = () => {
 
   const query = searchParams.get("q");
   const type = searchParams.get("type") || "movie";
+  const sort = searchParams.get("sort");
   const companyId = searchParams.get("company");
   const companyName = searchParams.get("company_name") || "Production Company";
 
@@ -117,8 +136,28 @@ const Browse = () => {
           results = data.results ?? [];
           pages = data.total_pages ?? 1;
         } else {
-          const config =
-            ROW_CONFIG.find((r) => r.mediaType === type) || ROW_CONFIG[0];
+          let config = ROW_CONFIG.find((r) => r.mediaType === type) || ROW_CONFIG[0];
+          if (sort === "new") {
+            config =
+              ROW_CONFIG.find(
+                (r) => r.fetcher === "discover" && r.mediaType === (type as "movie" | "tv")
+              ) ||
+              ROW_CONFIG.find((r) => r.fetcher === "discover") ||
+              config;
+          } else if (sort === "top") {
+            config =
+              ROW_CONFIG.find(
+                (r) => r.fetcher === "topRated" && r.mediaType === (type as "movie" | "tv")
+              ) ||
+              ROW_CONFIG.find((r) => r.fetcher === "topRated") ||
+              config;
+          } else if (sort === "trending") {
+            config =
+              ROW_CONFIG.find(
+                (r) => r.fetcher === "trending" && r.mediaType === (type as "movie" | "tv")
+              ) ||
+              ROW_CONFIG[0];
+          }
           const data = await fetchMovies(config, page);
           results = data.results ?? [];
           pages = data.total_pages ?? 1;
@@ -134,7 +173,7 @@ const Browse = () => {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [query, type, companyId, isCompanyMode]
+    [query, type, sort, companyId, isCompanyMode]
   );
 
   // Reset and reload on params change
@@ -160,20 +199,33 @@ const Browse = () => {
       <Header />
 
       <main className="pt-20 md:pt-28 px-4 md:px-10 pb-28 md:pb-24">
-
         {/* Company banner OR standard header */}
         {isCompanyMode ? (
           <CompanyBanner name={companyName} movieCount={movies.length} />
         ) : (
-          !loading && (
-            <PageHeader query={query} type={type} total={movies.length} />
-          )
+          <PageHeader
+            query={query}
+            type={type}
+            sort={sort}
+            total={movies.length}
+            loading={loading}
+          />
         )}
 
         {/* Grid */}
         {loading ? (
-          <div className="flex h-60 items-center justify-center">
-            <Loader />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5">
+            {Array(18)
+              .fill(0)
+              .map((_, idx) => (
+                <div key={idx} className="space-y-3">
+                  <Skeleton className="aspect-[2/3] w-full rounded-2xl" />
+                  <div className="px-1 space-y-2">
+                    <Skeleton variant="text" className="w-3/4 h-3.5" />
+                    <Skeleton variant="text" className="w-1/2 h-2.5" />
+                  </div>
+                </div>
+              ))}
           </div>
         ) : (
           <>
@@ -221,19 +273,33 @@ const Browse = () => {
               )}
             </div>
 
-            {/* Load More */}
+            {/* Skeleton placeholders while loading more */}
+            {loadingMore && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5 mt-4 sm:mt-5">
+                {Array(6)
+                  .fill(0)
+                  .map((_, idx) => (
+                    <div key={idx} className="space-y-3">
+                      <Skeleton className="aspect-[2/3] w-full rounded-2xl" />
+                      <div className="px-1 space-y-2">
+                        <Skeleton variant="text" className="w-3/4 h-3.5" />
+                        <Skeleton variant="text" className="w-1/2 h-2.5" />
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+
+            {/* Load More Button */}
             {movies.length > 0 && currentPage < totalPages && (
               <div className="mt-12 flex justify-center">
                 <button
                   onClick={handleLoadMore}
                   disabled={loadingMore}
-                  className="flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-8 py-3 text-sm font-semibold text-zinc-300 hover:bg-white/10 hover:text-white hover:border-white/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-8 py-3 text-sm font-semibold text-zinc-300 hover:bg-white/10 hover:text-white hover:border-white/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                 >
                   {loadingMore ? (
-                    <>
-                      <div className="h-4 w-4 rounded-full border-2 border-zinc-600 border-t-red-500 animate-spin" />
-                      Loading…
-                    </>
+                    <span className="text-zinc-400 animate-pulse">Loading more titles…</span>
                   ) : (
                     <>
                       <ChevronDown size={16} />

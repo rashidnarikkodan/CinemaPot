@@ -4,6 +4,7 @@ import { Search, Film, Tv, Building2, Star, ArrowRight, X, TrendingUp } from "lu
 import { searchCompany } from "../../services/tmdb.service";
 import type { CompanySearchResult, MovieDetails } from "../../types/movie";
 import { fetchMovies } from "../../utils/fetchMovies";
+import Skeleton from "./Skeleton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -22,14 +23,24 @@ interface ResultItem {
   originCountry?: string;
 }
 
-// ─── Animated Spinner ─────────────────────────────────────────────────────────
+// ─── Skeleton Loading List ───────────────────────────────────────────────────
 
-const Spinner = () => (
-  <div className="flex items-center justify-center py-10">
-    <div
-      className="h-8 w-8 rounded-full border-2 border-zinc-700 border-t-red-500 animate-spin"
-      aria-label="Loading"
-    />
+const SearchSkeleton = () => (
+  <div className="p-2 space-y-1">
+    {Array(4)
+      .fill(0)
+      .map((_, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-4 px-4 py-3 rounded-xl bg-white/[0.02]"
+        >
+          <Skeleton className="h-14 w-10 rounded-md shrink-0" />
+          <div className="flex-1 space-y-2">
+            <Skeleton variant="text" className="w-3/5 h-4" />
+            <Skeleton variant="text" className="w-1/4 h-3" />
+          </div>
+        </div>
+      ))}
   </div>
 );
 
@@ -50,7 +61,7 @@ const EmptyState = ({ query }: { query: string }) => (
 const IdlePlaceholder = ({ tab }: { tab: SearchTab }) => {
   const hints: Record<SearchTab, { icon: React.ReactNode; text: string }> = {
     movie: { icon: <Film size={32} />, text: "Search for movies — try \"Inception\" or \"Dune\"" },
-    tv:    { icon: <Tv size={32} />,   text: "Search TV shows — try \"Breaking Bad\" or \"Severance\"" },
+    tv:    { icon: <Tv size={32} />,   text: "Search Series — try \"Breaking Bad\" or \"Severance\"" },
     company: { icon: <Building2 size={32} />, text: "Search studios — try \"Marvel\", \"A24\" or \"Pixar\"" },
   };
   const { icon, text } = hints[tab];
@@ -233,7 +244,7 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
 
   const tabs: { id: SearchTab; label: string; icon: React.ReactNode }[] = [
     { id: "movie",   label: "Movies",    icon: <Film   size={13} /> },
-    { id: "tv",      label: "TV Shows",  icon: <Tv     size={13} /> },
+    { id: "tv",      label: "Series",  icon: <Tv     size={13} /> },
     { id: "company", label: "Studios",   icon: <Building2 size={13} /> },
   ];
 
@@ -338,7 +349,7 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
           <div className="max-h-[60vh] overflow-y-auto">
 
             {/* Loading */}
-            {isLoading && <Spinner />}
+            {isLoading && <SearchSkeleton />}
 
             {/* No results */}
             {!isLoading && hasSearched && results.length === 0 && (
