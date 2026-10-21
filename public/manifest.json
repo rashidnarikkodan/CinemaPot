@@ -1,0 +1,24 @@
+{
+  "name": "CinemaPot - Free Movie Streaming",
+  "short_name": "CinemaPot",
+  "description": "Watch trending movies and series on CinemaPot with ultra-fast streaming.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

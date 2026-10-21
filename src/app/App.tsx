@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/react";
 import Loader from "../components/common/Loader";
 
 import GlobalBravePopup from "../components/common/GlobalBravePopup";
+import MobileBottomNav from "../components/common/MobileBottomNav";
 
 // Lazy load pages for bundle optimization
 const Browse = lazy(() => import("../pages/Browse/Browse"));
@@ -25,6 +26,7 @@ function App() {
             <Route path="/watch/tv/:id" element={<Series />} />
           </Routes>
         </Suspense>
+        <MobileBottomNav />
       </BrowserRouter>
 
       <GlobalBravePopup />

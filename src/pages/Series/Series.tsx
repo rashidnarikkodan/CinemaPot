@@ -6,7 +6,8 @@ import EmbedPlayer from "../Movie/components/Embeded";
 import MovieCard from "../../components/movie/MovieCard";
 import type { MovieDetails } from "../../types/movie";
 import Details from "../Movie/components/Details";
-import { STREAM_SERVERS } from "../Movie/components/servers";
+import { STREAM_SERVERS, getDefaultServerIndex, savePreferredServerIndex } from "../Movie/components/servers";
+import ServerSelect from "../Movie/components/ServerSelect";
 import { Play } from "lucide-react";
 import Skeleton from "../../components/common/Skeleton";
 
@@ -47,7 +48,12 @@ const Series = () => {
   const [series, setSeries] = useState<TVDetails | null>(stateSeries || null);
   const [related, setRelated] = useState<MovieDetails[]>([]);
   const [loading, setLoading] = useState(true);
-  const [server, setServer] = useState(0);
+  const [server, setServer] = useState(getDefaultServerIndex);
+
+  const handleSelectServer = (idx: number) => {
+    setServer(idx);
+    savePreferredServerIndex(idx);
+  };
 
   const [season, setSeason] = useState(1);
   const [episode, setEpisode] = useState(1);
@@ -114,7 +120,7 @@ const Series = () => {
     return (
       <div className="min-h-screen bg-black text-white">
         <ProtectedHeader />
-        <main className="pt-24 px-4 md:px-12 pb-16">
+        <main className="pt-20 md:pt-24 px-4 md:px-12 pb-24 md:pb-16">
           <div className="grid grid-cols-1 xl:grid-cols-4 gap-12 items-start">
             <div className="xl:col-span-3 space-y-12">
               <Skeleton className="aspect-video w-full rounded-xl animate-pulse" />
@@ -141,11 +147,11 @@ const Series = () => {
     <div className="min-h-screen bg-black text-white selection:bg-red-600/30">
       <ProtectedHeader />
 
-      <main className="pt-24 px-4 md:px-12 pb-24">
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-12 items-start">
+      <main className="pt-20 md:pt-24 px-4 md:px-12 pb-28 md:pb-24">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8 xl:gap-12 items-start">
 
           {/* LEFT — PLAYER & CONTENT */}
-          <div className="xl:col-span-3 space-y-12">
+          <div className="xl:col-span-3 space-y-6">
 
             {/* 1. PLAYER SECTION */}
             <div className="group relative aspect-video w-full rounded-xl overflow-hidden bg-black shadow-[0_30px_60px_rgba(0,0,0,0.5)] border border-white/5 transition-all duration-700">
@@ -163,30 +169,13 @@ const Series = () => {
             {/* 2. SERVER & SEASON NAVIGATION */}
             <div className="space-y-6">
               
-              {/* SERVER SWITCHER */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
-                  Select Server
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {STREAM_SERVERS.map((s, i) => (
-                    <button
-                      key={s.name}
-                      onClick={() => setServer(i)}
-                      className={`group relative px-4 py-2 md:px-6 md:py-3 rounded-full text-[10px] md:text-[11px] font-black uppercase tracking-widest transition-all duration-300
-                        ${server === i
-                          ? "bg-red-600 text-white shadow-[0_0_20px_rgba(220,38,38,0.3)]"
-                          : "bg-zinc-900/50 border border-white/5 text-zinc-400 hover:text-white hover:bg-zinc-800"}
-                      `}
-                    >
-                      <span className="flex items-center gap-2">
-                        {server === i && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
-                        Server 0{i + 1}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+              {/* SERVER SWITCHER DROPDOWN */}
+              <div className="flex items-center justify-between">
+                <ServerSelect
+                  servers={STREAM_SERVERS}
+                  selectedServer={server}
+                  onSelectServer={handleSelectServer}
+                />
               </div>
 
               {/* SEASON SELECTOR */}

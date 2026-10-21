@@ -211,12 +211,19 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
     el?.scrollIntoView({ block: "nearest" });
   }, [focusedIndex]);
 
-  // ── Global Escape key ─────────────────────────────────────────────────────
+  // ── Global Escape key & Body Scroll Lock ──────────────────────────────────
 
   useEffect(() => {
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
     const esc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", esc);
     return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
       window.removeEventListener("keydown", esc);
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
@@ -273,21 +280,15 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
               value={searchTerm}
               onChange={handleSearchChange}
               onKeyDown={handleKeyDown}
-              placeholder={
-                activeTab === "company"
-                  ? "Search studios & production companies…"
-                  : activeTab === "tv"
-                  ? "Search TV shows…"
-                  : "Search movies…"
-              }
+              placeholder="Search movies, series, and studios…"
               autoFocus
-              className="flex-1 bg-transparent text-white text-[15px] placeholder-zinc-600 outline-none"
+              className="flex-1 bg-transparent text-white text-[15px] placeholder-zinc-500 outline-none"
               aria-label="Search"
               aria-autocomplete="list"
               role="combobox"
               aria-expanded={showDropdown}
             />
-            {searchTerm && (
+            {searchTerm ? (
               <button
                 onClick={() => {
                   setSearchTerm("");
@@ -295,22 +296,30 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
                   setHasSearched(false);
                   inputRef.current?.focus();
                 }}
-                className="text-zinc-500 hover:text-white transition-colors p-1 rounded-full hover:bg-white/10"
+                className="text-zinc-500 hover:text-white transition-colors p-1.5 rounded-full hover:bg-white/10"
                 aria-label="Clear search"
               >
-                <X size={15} />
+                <X size={16} />
+              </button>
+            ) : (
+              <button
+                onClick={onClose}
+                className="text-zinc-500 hover:text-white transition-colors p-1.5 rounded-full hover:bg-white/10"
+                aria-label="Close search"
+              >
+                <X size={16} />
               </button>
             )}
           </div>
 
-          {/* ── Tabs ─────────────────────────────────────────────────────── */}
-          <div className="flex gap-1.5 px-4 pt-3 pb-2 border-b border-white/5">
+          {/* ── Category Filter Buttons (Restored for All Devices) ────────── */}
+          <div className="flex gap-1.5 px-4 pt-3 pb-2.5 border-b border-white/5 overflow-x-auto scrollbar-hide">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
                 className={`
-                  flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold
+                  flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0
                   transition-all duration-200
                   ${activeTab === tab.id
                     ? "bg-red-600 text-white shadow-lg shadow-red-900/40"
@@ -323,13 +332,6 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
                 {tab.label}
               </button>
             ))}
-
-            {/* keyboard hint */}
-            <div className="ml-auto flex items-center gap-1 text-[10px] text-zinc-700 self-center pr-1 select-none">
-              <kbd className="border border-zinc-700 rounded px-1 py-0.5 bg-zinc-900">↑↓</kbd>
-              <kbd className="border border-zinc-700 rounded px-1 py-0.5 bg-zinc-900">↵</kbd>
-              <kbd className="border border-zinc-700 rounded px-1 py-0.5 bg-zinc-900">esc</kbd>
-            </div>
           </div>
 
           {/* ── Results area ─────────────────────────────────────────────── */}
@@ -460,11 +462,6 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
             )}
           </div>
         </div>
-
-        {/* Quick tip below modal */}
-        <p className="mt-3 text-center text-[11px] text-zinc-700 select-none">
-          Press <kbd className="border border-zinc-700 rounded px-1.5 py-0.5 bg-zinc-900 text-zinc-500">Esc</kbd> to close
-        </p>
       </div>
     </div>
   );

@@ -159,7 +159,7 @@ const Browse = () => {
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       <Header />
 
-      <main className="pt-28 px-4 md:px-10 pb-24">
+      <main className="pt-20 md:pt-28 px-4 md:px-10 pb-28 md:pb-24">
 
         {/* Company banner OR standard header */}
         {isCompanyMode ? (

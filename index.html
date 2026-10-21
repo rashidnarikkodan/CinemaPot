@@ -11,9 +11,34 @@
     <meta property="og:title" content="CinemaPot" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://cinema-pot.vercel.app" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>CinemaPot - Free Movie Streaming</title>
+
+    <!-- PWA & Mobile Web App Meta -->
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="CinemaPot" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+
+    <!-- Resource Preconnect & DNS-Prefetch for Fast Video Streaming & Low Buffering -->
+    <link rel="preconnect" href="https://vidlink.pro" crossorigin />
+    <link rel="dns-prefetch" href="https://vidlink.pro" />
+    <link rel="preconnect" href="https://vidsrc.su" crossorigin />
+    <link rel="dns-prefetch" href="https://vidsrc.su" />
+    <link rel="preconnect" href="https://vidcore.org" crossorigin />
+    <link rel="dns-prefetch" href="https://vidcore.org" />
+    <link rel="preconnect" href="https://vidsrc.pm" crossorigin />
+    <link rel="dns-prefetch" href="https://vidsrc.pm" />
+    <link rel="preconnect" href="https://www.2embed.cc" crossorigin />
+    <link rel="dns-prefetch" href="https://www.2embed.cc" />
+    <link rel="preconnect" href="https://image.tmdb.org" crossorigin />
+    <link rel="dns-prefetch" href="https://image.tmdb.org" />
+    <link rel="preconnect" href="https://api.themoviedb.org" crossorigin />
+    <link rel="dns-prefetch" href="https://api.themoviedb.org" />
   </head>
   <body>
     <div id="root"></div>
