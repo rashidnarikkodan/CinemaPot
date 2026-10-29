@@ -1,10 +1,10 @@
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import Loader from "../components/common/Loader";
 
-import GlobalBravePopup from "../components/common/GlobalBravePopup";
+import AdBlockTip from "../components/common/AdBlockTip";
 import MobileBottomNav from "../components/common/MobileBottomNav";
 
 import Home from "../pages/Home/Home";
@@ -28,7 +28,7 @@ function App() {
         <MobileBottomNav />
       </BrowserRouter>
 
-      <GlobalBravePopup />
+      <AdBlockTip />
       <SpeedInsights />
       <Analytics />
     </>
