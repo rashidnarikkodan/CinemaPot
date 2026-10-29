@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import MovieRow from "./MovieRow";
 import { ROW_CONFIG } from "../../config/rowConfig";
 import { fetchMovies } from "../../utils/fetchMovies";
+import { useWatchHistory } from "../../utils/watchHistory";
 import type { MovieRow as MovieRowType } from "../../types/row";
 
 /**
@@ -9,6 +10,7 @@ import type { MovieRow as MovieRowType } from "../../types/row";
  * to prevent network congestion and improve initial TBT.
  */
 const RowContainer = () => {
+  const { history, clearHistory } = useWatchHistory();
   const [rowsData, setRowsData] = useState<Record<number, MovieRowType>>({});
   const [loadingStates, setLoadingStates] = useState<Record<number, boolean>>({});
 
@@ -42,6 +44,18 @@ const RowContainer = () => {
 
   return (
     <main className="flex flex-col min-h-screen">
+      {history.length > 0 && (
+        <MovieRow
+          key="recent-watch-history"
+          row={{
+            title: "Recently Watched",
+            movies: history,
+            mediaType: "movie",
+          }}
+          isLoading={false}
+          onClear={clearHistory}
+        />
+      )}
       {ROW_CONFIG.map((config, idx) => (
         <MovieRow 
           key={config.title} 

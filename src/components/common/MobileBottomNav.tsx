@@ -301,7 +301,7 @@ const MobileBottomNav = () => {
                   <Sparkles size={18} />
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-white">Top TV Series</div>
+                  <div className="text-sm font-bold text-white">Top Series</div>
                   <div className="text-[11px] text-zinc-500">Critically acclaimed shows</div>
                 </div>
               </div>

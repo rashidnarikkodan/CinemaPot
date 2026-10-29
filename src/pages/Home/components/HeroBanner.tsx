@@ -6,7 +6,7 @@ import Skeleton from "../../../components/common/Skeleton";
 import type { MovieDetails } from "../../../types/movie";
 
 const HeroSkeleton = () => (
-  <div className="relative h-[calc(100dvh-4rem)] min-h-[480px] md:h-auto md:min-h-[85vh] flex flex-col justify-end px-5 md:px-[5%] pb-8 md:py-[20vh] bg-[#161616] pt-12 md:pt-16">
+  <div className="relative h-[calc(100dvh-4rem)] min-h-[480px] md:h-screen flex flex-col justify-end px-5 md:px-[5%] pb-8 md:pb-16 lg:pb-20 bg-[#161616]">
     <Skeleton className="absolute inset-0" />
     <div className="relative z-10 max-w-2xl space-y-4 md:space-y-6">
       <Skeleton variant="text" className="w-full h-16 md:h-32" />
@@ -46,7 +46,7 @@ const HeroBanner = () => {
 
   return (
     <div
-      className="relative h-[calc(100dvh-4rem)] min-h-[480px] md:h-auto md:min-h-[85vh] bg-[#161616] overflow-hidden flex flex-col justify-end pt-12 md:pt-16"
+      className="relative h-[calc(100dvh-4rem)] min-h-[480px] md:h-screen bg-[#161616] overflow-hidden flex flex-col justify-end"
     >
       {/* Desktop Background Layer */}
       <div

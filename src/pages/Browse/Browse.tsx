@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Building2, Film, Tv, ChevronDown, Search, Flame, Star, Compass } from "lucide-react";
+import { Building2, Film, Tv, ChevronDown, Search, Flame, Star, Compass, History, Sparkles } from "lucide-react";
 import Header from "../../components/common/Header";
 import { fetchMovies } from "../../utils/fetchMovies";
 import { searchMulti, getMoviesByCompany } from "../../services/tmdb.service";
+import { getWatchHistory } from "../../utils/watchHistory";
 import MovieCard from "../../components/movie/MovieCard";
 import Skeleton from "../../components/common/Skeleton";
 import type { MovieDetails } from "../../types/movie";
@@ -52,11 +53,16 @@ const PageHeader = ({
   loading?: boolean;
 }) => {
   let icon = type === "tv" ? <Tv size={22} className="text-blue-400" /> : <Film size={22} className="text-red-400" />;
+  if (type === "all") {
+    icon = <Sparkles size={22} className="text-red-500" />;
+  }
   let title = query
     ? `Results for "${query}"`
     : type === "tv"
       ? "Series"
-      : "Movies";
+      : type === "all"
+        ? "Movies & Series"
+        : "Movies";
 
   if (sort === "new") {
     icon = <Flame size={22} className="text-red-500" />;
@@ -67,6 +73,9 @@ const PageHeader = ({
   } else if (sort === "trending") {
     icon = <Compass size={22} className="text-blue-400" />;
     title = type === "tv" ? "Trending Series" : "Trending Now";
+  } else if (sort === "history") {
+    icon = <History size={22} className="text-red-500" />;
+    title = "Recently Watched";
   }
 
   return (
@@ -131,10 +140,33 @@ const Browse = () => {
           const data = await getMoviesByCompany(Number(companyId), page);
           results = data.results ?? [];
           pages = data.total_pages ?? 1;
+        } else if (sort === "history") {
+          results = getWatchHistory() as unknown as MovieDetails[];
+          pages = 1;
         } else if (query) {
-          const data = await searchMulti(query, page);
-          results = data.results ?? [];
-          pages = data.total_pages ?? 1;
+          if (type === "movie") {
+            const data = await fetchMovies({
+              title: "Search",
+              mediaType: "movie",
+              fetcher: "search",
+              params: { query },
+            }, page);
+            results = data.results ?? [];
+            pages = data.total_pages ?? 1;
+          } else if (type === "tv") {
+            const data = await fetchMovies({
+              title: "Search",
+              mediaType: "tv",
+              fetcher: "search",
+              params: { query },
+            }, page);
+            results = data.results ?? [];
+            pages = data.total_pages ?? 1;
+          } else {
+            const data = await searchMulti(query, page);
+            results = data.results ?? [];
+            pages = data.total_pages ?? 1;
+          }
         } else {
           let config = ROW_CONFIG.find((r) => r.mediaType === type) || ROW_CONFIG[0];
           if (sort === "new") {

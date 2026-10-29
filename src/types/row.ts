@@ -1,8 +1,8 @@
-import type { MovieDetails } from "./movie";
+import type { MovieDetails, WatchHistoryItem } from "./movie";
 
 export type MovieRow = {
   title: string;
-  movies: MovieDetails[];
+  movies: (MovieDetails | WatchHistoryItem)[];
   mediaType: "movie" | "tv";
 };
 

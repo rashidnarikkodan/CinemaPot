@@ -163,7 +163,7 @@ export const ROW_CONFIG: RowConfig[] = [
     },
   },
   {
-    title: "Crime & Drama TV",
+    title: "Crime & Drama Series",
     mediaType: "tv",
     fetcher: "discover",
     params: {
@@ -173,7 +173,7 @@ export const ROW_CONFIG: RowConfig[] = [
     },
   },
   {
-    title: "Sci-Fi & Fantasy TV",
+    title: "Sci-Fi & Fantasy Series",
     mediaType: "tv",
     fetcher: "discover",
     params: {

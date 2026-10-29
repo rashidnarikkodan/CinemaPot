@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Film, Tv, Building2, Star, ArrowRight, X, TrendingUp } from "lucide-react";
-import { searchCompany } from "../../services/tmdb.service";
+import { Search, Film, Tv, Building2, Star, ArrowRight, X, TrendingUp, Sparkles } from "lucide-react";
+import { searchCompany, searchMulti } from "../../services/tmdb.service";
 import type { CompanySearchResult, MovieDetails } from "../../types/movie";
 import { fetchMovies } from "../../utils/fetchMovies";
 import Skeleton from "./Skeleton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type SearchTab = "movie" | "tv" | "company";
+type SearchTab = "all" | "movie" | "tv" | "company";
 
 interface ResultItem {
   id: number;
@@ -60,8 +60,9 @@ const EmptyState = ({ query }: { query: string }) => (
 
 const IdlePlaceholder = ({ tab }: { tab: SearchTab }) => {
   const hints: Record<SearchTab, { icon: React.ReactNode; text: string }> = {
-    movie: { icon: <Film size={32} />, text: "Search for movies — try \"Inception\" or \"Dune\"" },
-    tv:    { icon: <Tv size={32} />,   text: "Search Series — try \"Breaking Bad\" or \"Severance\"" },
+    all:     { icon: <Sparkles size={32} />,  text: "Search all movies & series — try \"Avatar\" or \"Stranger Things\"" },
+    movie:   { icon: <Film size={32} />,      text: "Search for movies — try \"Inception\" or \"Dune\"" },
+    tv:      { icon: <Tv size={32} />,        text: "Search Series — try \"Breaking Bad\" or \"Severance\"" },
     company: { icon: <Building2 size={32} />, text: "Search studios — try \"Marvel\", \"A24\" or \"Pixar\"" },
   };
   const { icon, text } = hints[tab];
@@ -79,7 +80,7 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
   const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<SearchTab>("movie");
+  const [activeTab, setActiveTab] = useState<SearchTab>("all");
   const [results, setResults] = useState<ResultItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -108,6 +109,20 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
             mediaType: "company" as SearchTab,
             logoPath: c.logo_path,
             originCountry: c.origin_country,
+          }));
+        setResults(formatted);
+      } else if (tab === "all") {
+        const data = await searchMulti(query);
+        const formatted: ResultItem[] = (data.results as MovieDetails[])
+          .slice(0, 10)
+          .map((m) => ({
+            id: m.id,
+            title: m.title || m.name || "",
+            year: (m.release_date || m.first_air_date || "").split("-")[0],
+            mediaType: (m.media_type === "tv" ? "tv" : "movie") as SearchTab,
+            poster: m.poster_path,
+            rating: m.vote_average,
+            overview: m.overview,
           }));
         setResults(formatted);
       } else {
@@ -179,7 +194,19 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
     if (item.mediaType === "company") {
       navigate(`/browse?company=${item.id}&company_name=${encodeURIComponent(item.title)}`);
     } else {
-      navigate(`/browse/${item.id}`);
+      const media = item.mediaType === "tv" ? "tv" : "movie";
+      navigate(`/watch/${media}/${item.id}`, {
+        state: {
+          movie: {
+            id: item.id,
+            title: item.title,
+            poster_path: item.poster,
+            release_date: item.year,
+            vote_average: item.rating,
+            media_type: media,
+          }
+        }
+      });
     }
   };
 
@@ -191,6 +218,8 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
     }
     if (activeTab === "company") {
       navigate(`/browse?q=${encodeURIComponent(searchTerm.trim())}&type=company`);
+    } else if (activeTab === "all") {
+      navigate(`/browse?q=${encodeURIComponent(searchTerm.trim())}&type=all`);
     } else {
       navigate(`/browse?q=${encodeURIComponent(searchTerm.trim())}&type=${activeTab}`);
     }
@@ -243,6 +272,7 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
   // ── Tabs config ───────────────────────────────────────────────────────────
 
   const tabs: { id: SearchTab; label: string; icon: React.ReactNode }[] = [
+    { id: "all",     label: "All",     icon: <Sparkles  size={13} /> },
     { id: "movie",   label: "Movies",    icon: <Film   size={13} /> },
     { id: "tv",      label: "Series",  icon: <Tv     size={13} /> },
     { id: "company", label: "Studios",   icon: <Building2 size={13} /> },
@@ -402,7 +432,7 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center bg-zinc-800 text-zinc-600">
-                            {activeTab === "tv" ? <Tv size={16} /> : <Film size={16} />}
+                            {item.mediaType === "tv" ? <Tv size={16} /> : <Film size={16} />}
                           </div>
                         )}
                       </div>
@@ -434,7 +464,7 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
                                 ? "bg-blue-600/20 text-blue-400"
                                 : "bg-red-600/20 text-red-400"
                             }`}>
-                              {item.mediaType === "tv" ? "TV" : "FILM"}
+                              {item.mediaType === "tv" ? "SERIES" : "FILM"}
                             </span>
                           </>
                         )}

@@ -19,15 +19,15 @@ const HeroContent = ({ movie }: Props) => {
       : movie.overview;
 
   return (
-    <div className="px-5 md:pl-[5%] pb-6 md:py-[20vh] text-white relative z-10 max-w-3xl flex flex-col justify-end">
+    <div className="px-5 md:pl-[5%] pb-6 md:pb-16 lg:pb-20 text-white relative z-10 max-w-3xl flex flex-col justify-end">
       {/* Title */}
-      <h1 className="text-4xl sm:text-5xl md:text-8xl font-black leading-tight mb-4 md:mb-8 tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] animate-in fade-in slide-in-from-left-6 duration-1000">
+      <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black leading-tight mb-3 md:mb-5 tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] animate-in fade-in slide-in-from-left-6 duration-1000">
         {title}
       </h1>
 
       {/* Overview */}
       {overview && (
-        <p className="mb-6 md:mb-10 max-w-xl text-sm md:text-lg leading-relaxed text-zinc-300 font-medium line-clamp-3 md:line-clamp-none animate-in fade-in slide-in-from-left-4 duration-1000 delay-300">
+        <p className="mb-6 md:mb-8 max-w-xl text-sm md:text-base lg:text-lg leading-relaxed text-zinc-300 font-medium line-clamp-3 md:line-clamp-3 animate-in fade-in slide-in-from-left-4 duration-1000 delay-300">
           {overview}
         </p>
       )}

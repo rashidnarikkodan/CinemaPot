@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { getMovieDetails, getRelatedMovies } from "../../services/tmdb.service";
+import { addToWatchHistory } from "../../utils/watchHistory";
 import ProtectedHeader from "../../components/common/Header";
 import EmbedPlayer from "./components/Embeded";
 import MovieCard from "../../components/movie/MovieCard";
@@ -36,6 +37,22 @@ const Movie = () => {
     }
     setRelated([]);
   }, [id, stateMovie]);
+
+  // Record to recent watch history
+  useEffect(() => {
+    if (movie && movie.id) {
+      addToWatchHistory({
+        id: movie.id,
+        title: movie.title || movie.original_title || "",
+        poster_path: movie.poster_path,
+        release_date: movie.release_date,
+        vote_average: movie.vote_average ?? 0,
+        vote_count: movie.vote_count,
+        popularity: movie.popularity,
+        media_type: "movie",
+      });
+    }
+  }, [movie?.id, movie?.title]);
 
   useEffect(() => {
     const fetchMovieData = async () => {

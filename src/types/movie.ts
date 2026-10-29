@@ -1,4 +1,16 @@
 
+export interface WatchHistoryItem {
+  id: number;
+  title: string;
+  poster_path: string | null;
+  release_date?: string;
+  first_air_date?: string;
+  vote_average: number;
+  vote_count?: number;
+  popularity?: number;
+  media_type: "movie" | "tv";
+}
+
 export interface MovieDetails{
   adult: boolean;
   backdrop_path: string | null;

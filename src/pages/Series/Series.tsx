@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { getTVDetails, getTVRecommendations, getTVSeasonDetails } from "../../services/tmdb.service";
+import { addToWatchHistory } from "../../utils/watchHistory";
 import ProtectedHeader from "../../components/common/Header";
 import EmbedPlayer from "../Movie/components/Embeded";
 import MovieCard from "../../components/movie/MovieCard";
@@ -72,6 +73,23 @@ const Series = () => {
     setEpisode(1);
     setSeasonData(null);
   }, [id, stateSeries]);
+
+  // Record to recent watch history
+  useEffect(() => {
+    if (series && series.id) {
+      addToWatchHistory({
+        id: series.id,
+        title: series.name || series.original_name || (series as any).title || "",
+        poster_path: series.poster_path,
+        release_date: series.first_air_date || (series as any).release_date,
+        first_air_date: series.first_air_date,
+        vote_average: series.vote_average ?? 0,
+        vote_count: series.vote_count,
+        popularity: series.popularity,
+        media_type: "tv",
+      });
+    }
+  }, [series?.id, series?.name]);
 
   useEffect(() => {
     const fetchSeriesData = async () => {
