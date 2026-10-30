@@ -187,8 +187,8 @@ const Series = () => {
       try {
         const seriesId = parseInt(id);
         const [details, relatedSeries] = await Promise.all([
-          getTVDetails(seriesId),
-          getTVRecommendations(seriesId),
+          getTVDetails(seriesId) as Promise<TVDetails>,
+          getTVRecommendations(seriesId) as Promise<MovieDetails[]>,
         ]);
         setSeries(details);
         setRelated(relatedSeries);
@@ -202,7 +202,7 @@ const Series = () => {
         }
 
         // Load targeted season data
-        const sData = await getTVSeasonDetails(seriesId, targetSeason);
+        const sData: SeasonData = await getTVSeasonDetails(seriesId, targetSeason);
         setSeasonData(sData);
 
         // Validate episode exists
