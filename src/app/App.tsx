@@ -23,6 +23,7 @@ function App() {
             <Route path="/browse/:id" element={<Movie />} />
             <Route path="/watch/movie/:id" element={<Movie />} />
             <Route path="/watch/tv/:id" element={<Series />} />
+            <Route path="/watch/tv/:id/:season/:episode" element={<Series />} />
           </Routes>
         </Suspense>
         <MobileBottomNav />

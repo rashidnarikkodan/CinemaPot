@@ -4,6 +4,7 @@ import MovieCard from "../movie/MovieCard";
 import Skeleton from "../common/Skeleton";
 import { ChevronLeft, ChevronRight, Flame, Film, Tv, Star, Gem, Globe, Shield, Smile, Ghost, Rocket, Trophy, PlayCircle, Compass, History } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { getSeriesWatchUrl } from "../../utils/watchHistory";
 
 type Props = {
   row: MovieRowType;
@@ -109,20 +110,27 @@ const MovieRow = ({ row, isLoading, onClear }: Props) => {
                     voteCount={movie.vote_count}
                     tmdbId={movie.id}
                     mediaType={itemMediaType}
-                    onClick={(id) => navigate(`/watch/${itemMediaType}/${id}`, {
-                      state: {
-                        movie: {
-                          id: movie.id,
-                          title: title,
-                          poster_path: movie.poster_path,
-                          release_date: date,
-                          vote_average: movie.vote_average,
-                          popularity: movie.popularity,
-                          vote_count: movie.vote_count,
-                          media_type: itemMediaType
+                    season={(movie as any).season}
+                    episode={(movie as any).episode}
+                    onClick={() => {
+                      const targetUrl = itemMediaType === "tv"
+                        ? getSeriesWatchUrl(movie.id)
+                        : `/watch/${itemMediaType}/${movie.id}`;
+                      navigate(targetUrl, {
+                        state: {
+                          movie: {
+                            id: movie.id,
+                            title: title,
+                            poster_path: movie.poster_path,
+                            release_date: date,
+                            vote_average: movie.vote_average,
+                            popularity: movie.popularity,
+                            vote_count: movie.vote_count,
+                            media_type: itemMediaType
+                          }
                         }
-                      }
-                    })}
+                      });
+                    }}
                   />
                 </div>
               );

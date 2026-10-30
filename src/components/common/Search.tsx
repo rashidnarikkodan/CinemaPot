@@ -4,6 +4,7 @@ import { Search, Film, Tv, Building2, Star, ArrowRight, X, TrendingUp, Sparkles 
 import { searchCompany, searchMulti } from "../../services/tmdb.service";
 import type { CompanySearchResult, MovieDetails } from "../../types/movie";
 import { fetchMovies } from "../../utils/fetchMovies";
+import { getSeriesWatchUrl } from "../../utils/watchHistory";
 import Skeleton from "./Skeleton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -195,7 +196,8 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
       navigate(`/browse?company=${item.id}&company_name=${encodeURIComponent(item.title)}`);
     } else {
       const media = item.mediaType === "tv" ? "tv" : "movie";
-      navigate(`/watch/${media}/${item.id}`, {
+      const targetUrl = media === "tv" ? getSeriesWatchUrl(item.id) : `/watch/${media}/${item.id}`;
+      navigate(targetUrl, {
         state: {
           movie: {
             id: item.id,

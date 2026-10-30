@@ -4,7 +4,7 @@ import { Building2, Film, Tv, ChevronDown, Search, Flame, Star, Compass, History
 import Header from "../../components/common/Header";
 import { fetchMovies } from "../../utils/fetchMovies";
 import { searchMulti, getMoviesByCompany } from "../../services/tmdb.service";
-import { getWatchHistory } from "../../utils/watchHistory";
+import { getWatchHistory, getSeriesWatchUrl } from "../../utils/watchHistory";
 import MovieCard from "../../components/movie/MovieCard";
 import Skeleton from "../../components/common/Skeleton";
 import type { MovieDetails } from "../../types/movie";
@@ -282,8 +282,9 @@ const Browse = () => {
                       voteCount={movie.vote_count}
                       tmdbId={movie.id}
                       mediaType={media}
-                      onClick={(id) =>
-                        navigate(`/watch/${media}/${id}`, {
+                      onClick={(id) => {
+                        const targetUrl = media === "tv" ? getSeriesWatchUrl(id) : `/watch/${media}/${id}`;
+                        navigate(targetUrl, {
                           state: {
                             movie: {
                               id: movie.id,
@@ -295,8 +296,8 @@ const Browse = () => {
                               vote_count: movie.vote_count,
                             },
                           },
-                        })
-                      }
+                        });
+                      }}
                     />
                   );
                 })

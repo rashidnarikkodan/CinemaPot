@@ -1,6 +1,7 @@
 import type { MovieDetails } from "../../../types/movie";
 import { MonitorPlayIcon as Play } from "lucide-react";
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom';
+import { getSeriesWatchUrl } from "../../../utils/watchHistory";
 
 
 type Props = {
@@ -35,7 +36,10 @@ const HeroContent = ({ movie }: Props) => {
       {/* Actions */}
       <div className="flex items-center gap-3 md:gap-4 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
         <button
-          onClick={() => navigate(`/watch/${mediaType}/${movie.id}`)}
+          onClick={() => {
+            const targetUrl = mediaType === "tv" ? getSeriesWatchUrl(movie.id) : `/watch/${mediaType}/${movie.id}`;
+            navigate(targetUrl);
+          }}
           className="group relative flex items-center justify-center gap-2 md:gap-3 overflow-hidden rounded-2xl bg-white px-6 py-3.5 md:px-10 md:py-4 text-black font-black uppercase tracking-widest text-xs transition-all hover:scale-105 active:scale-95 shadow-2xl"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

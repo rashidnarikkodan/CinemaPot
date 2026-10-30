@@ -1,6 +1,7 @@
 import React, { memo } from "react";
 import { Star, TrendingUp, Users, Clock } from "lucide-react";
 import { getMovieDetails, getTVDetails } from "../../services/tmdb.service";
+import { getSeriesProgress } from "../../utils/watchHistory";
 
 interface MovieCardProps {
   title: string;
@@ -15,6 +16,8 @@ interface MovieCardProps {
   mediaType?: "movie" | "tv";
   onClick?: (id: number) => void;
   priority?: boolean; // For LCP optimization
+  season?: number;
+  episode?: number;
 }
 
 /**
@@ -32,7 +35,9 @@ const MovieCard: React.FC<MovieCardProps> = memo(({
   onClick,
   tmdbId,
   mediaType = "movie",
-  priority = false
+  priority = false,
+  season,
+  episode,
 }) => {
   // Determine if this content hasn't been released yet
   const isUnreleased = releaseDate
@@ -122,12 +127,19 @@ const MovieCard: React.FC<MovieCardProps> = memo(({
               )}
             </div>
             
-            <button className="w-full py-2.5 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-red-600 hover:text-white transition-colors">
-              View Details
-            </button>
-          </div>
+            {(() => {
+              const progress = mediaType === "tv" ? (season && episode ? { season, episode } : getSeriesProgress(tmdbId)) : null;
+              const hasProgress = Boolean(progress && progress.season && progress.episode);
+
+              return (
+              <button className="w-full py-2.5 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-red-600 hover:text-white transition-colors">
+                {hasProgress ? `Resume S${progress!.season} E${progress!.episode}` : "Watch Now"}
+              </button>
+            );
+          })()}
         </div>
       </div>
+    </div>
 
       {/* C. Info Section */}
       <div className="px-1">
@@ -137,7 +149,21 @@ const MovieCard: React.FC<MovieCardProps> = memo(({
         <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-zinc-500">
           <span>{releaseYear}</span>
           <span className="w-1 h-1 rounded-full bg-zinc-700" />
-          <span>{mediaType === "movie" && typeof runtime === 'number' ? `${runtime}m` : 'HD'}</span>
+          {mediaType === "tv" ? (
+            (() => {
+              const p = (season && episode) ? { season, episode } : getSeriesProgress(tmdbId);
+              if (p && p.season && p.episode) {
+                return (
+                  <span className="text-red-500 font-extrabold tracking-wider">
+                    S{p.season} E{p.episode}
+                  </span>
+                );
+              }
+              return <span>HD</span>;
+            })()
+          ) : (
+            <span>{typeof runtime === 'number' ? `${runtime}m` : 'HD'}</span>
+          )}
         </div>
       </div>
     </div>

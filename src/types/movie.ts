@@ -9,6 +9,8 @@ export interface WatchHistoryItem {
   vote_count?: number;
   popularity?: number;
   media_type: "movie" | "tv";
+  season?: number;
+  episode?: number;
 }
 
 export interface MovieDetails{

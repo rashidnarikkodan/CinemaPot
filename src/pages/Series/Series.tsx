@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { getTVDetails, getTVRecommendations, getTVSeasonDetails } from "../../services/tmdb.service";
-import { addToWatchHistory } from "../../utils/watchHistory";
+import { addToWatchHistory, getSeriesProgress, saveSeriesProgress, getSeriesWatchUrl } from "../../utils/watchHistory";
 import ProtectedHeader from "../../components/common/Header";
 import EmbedPlayer from "../Movie/components/Embeded";
 import MovieCard from "../../components/movie/MovieCard";
@@ -39,10 +39,48 @@ interface TVDetails extends MovieDetails {
   seasons: Season[];
 }
 
+const parseQueryNumber = (value: string | null | undefined): number | null => {
+  if (!value) return null;
+  const parsed = parseInt(value, 10);
+  return !isNaN(parsed) && parsed >= 1 ? parsed : null;
+};
+
 const Series = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id, season: pathSeason, episode: pathEpisode } = useParams<{ id: string; season?: string; episode?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Determine initial season and episode from URL (params/query) or saved progress
+  const initialNumbers = useMemo(() => {
+    const queryS = parseQueryNumber(searchParams.get("season") || searchParams.get("s") || pathSeason);
+    const queryE = parseQueryNumber(searchParams.get("episode") || searchParams.get("e") || pathEpisode);
+
+    if (queryS) {
+      return {
+        season: queryS,
+        episode: queryE || 1,
+        isFromUrl: true,
+      };
+    }
+
+    if (id) {
+      const saved = getSeriesProgress(id);
+      if (saved) {
+        return {
+          season: saved.season,
+          episode: saved.episode,
+          isFromUrl: false,
+        };
+      }
+    }
+
+    return {
+      season: 1,
+      episode: 1,
+      isFromUrl: false,
+    };
+  }, [id, pathSeason, pathEpisode, searchParams]);
 
   // Use location state if available for instant rendering (prevents LCP delay)
   const stateSeries = location.state?.movie as TVDetails | null;
@@ -56,8 +94,8 @@ const Series = () => {
     savePreferredServerIndex(idx);
   };
 
-  const [season, setSeason] = useState(1);
-  const [episode, setEpisode] = useState(1);
+  const [season, setSeason] = useState<number>(initialNumbers.season);
+  const [episode, setEpisode] = useState<number>(initialNumbers.episode);
   const [seasonData, setSeasonData] = useState<SeasonData | null>(null);
   const [isSeasonLoading, setIsSeasonLoading] = useState(false);
 
@@ -69,27 +107,78 @@ const Series = () => {
       setSeries(null);
     }
     setRelated([]);
-    setSeason(1);
-    setEpisode(1);
+    setSeason(initialNumbers.season);
+    setEpisode(initialNumbers.episode);
     setSeasonData(null);
-  }, [id, stateSeries]);
+  }, [id, stateSeries, initialNumbers.season, initialNumbers.episode]);
+
+  // Ensure URL search params reflect current season & episode
+  const updateUrlParams = useCallback(
+    (s: number, e: number, replace: boolean = false) => {
+      const currentS = searchParams.get("season");
+      const currentE = searchParams.get("episode");
+      if (currentS !== String(s) || currentE !== String(e)) {
+        setSearchParams(
+          (prev) => {
+            const next = new URLSearchParams(prev);
+            next.set("season", String(s));
+            next.set("episode", String(e));
+            // Clean up shorthand if present to keep canonical
+            next.delete("s");
+            next.delete("e");
+            return next;
+          },
+          { replace }
+        );
+      }
+    },
+    [searchParams, setSearchParams]
+  );
+
+  // Sync state when user uses browser Back / Forward navigation
+  useEffect(() => {
+    const urlS = parseQueryNumber(searchParams.get("season") || searchParams.get("s") || pathSeason);
+    const urlE = parseQueryNumber(searchParams.get("episode") || searchParams.get("e") || pathEpisode);
+
+    if (urlS && urlS !== season) {
+      setSeason(urlS);
+      const targetE = urlE || 1;
+      setEpisode(targetE);
+      if (id) {
+        saveSeriesProgress(id, urlS, targetE);
+        setIsSeasonLoading(true);
+        getTVSeasonDetails(parseInt(id), urlS)
+          .then((data) => setSeasonData(data))
+          .catch((err) => console.error("Failed to load season details on popstate:", err))
+          .finally(() => setIsSeasonLoading(false));
+      }
+    } else if (urlE && urlE !== episode) {
+      setEpisode(urlE);
+      if (id) {
+        saveSeriesProgress(id, season, urlE);
+      }
+    }
+  }, [searchParams, pathSeason, pathEpisode, id, season, episode]);
 
   // Record to recent watch history
-  useEffect(() => {
-    if (series && series.id) {
+  const recordHistory = useCallback(
+    (details: TVDetails, s: number, e: number) => {
       addToWatchHistory({
-        id: series.id,
-        title: series.name || series.original_name || (series as any).title || "",
-        poster_path: series.poster_path,
-        release_date: series.first_air_date || (series as any).release_date,
-        first_air_date: series.first_air_date,
-        vote_average: series.vote_average ?? 0,
-        vote_count: series.vote_count,
-        popularity: series.popularity,
+        id: details.id,
+        title: details.name || details.original_name || (details as any).title || "",
+        poster_path: details.poster_path,
+        release_date: details.first_air_date || (details as any).release_date,
+        first_air_date: details.first_air_date,
+        vote_average: details.vote_average ?? 0,
+        vote_count: details.vote_count,
+        popularity: details.popularity,
         media_type: "tv",
+        season: s,
+        episode: e,
       });
-    }
-  }, [series?.id, series?.name]);
+    },
+    []
+  );
 
   useEffect(() => {
     const fetchSeriesData = async () => {
@@ -99,14 +188,37 @@ const Series = () => {
         const seriesId = parseInt(id);
         const [details, relatedSeries] = await Promise.all([
           getTVDetails(seriesId),
-          getTVRecommendations(seriesId)
+          getTVRecommendations(seriesId),
         ]);
         setSeries(details);
         setRelated(relatedSeries);
 
-        // Load first season data
-        const sData = await getTVSeasonDetails(seriesId, 1);
+        // Determine target season
+        const validSeasons = details.seasons?.filter((s) => s.season_number > 0) || [];
+        let targetSeason = initialNumbers.season;
+        if (validSeasons.length > 0 && !validSeasons.some((s) => s.season_number === targetSeason)) {
+          targetSeason = validSeasons[0].season_number;
+          setSeason(targetSeason);
+        }
+
+        // Load targeted season data
+        const sData = await getTVSeasonDetails(seriesId, targetSeason);
         setSeasonData(sData);
+
+        // Validate episode exists
+        let targetEpisode = initialNumbers.episode;
+        if (
+          sData?.episodes?.length > 0 &&
+          !sData.episodes.some((ep) => ep.episode_number === targetEpisode)
+        ) {
+          targetEpisode = sData.episodes[0].episode_number;
+          setEpisode(targetEpisode);
+        }
+
+        // Sync URL (using replace so back button doesn't loop) & save progress
+        updateUrlParams(targetSeason, targetEpisode, true);
+        saveSeriesProgress(seriesId, targetSeason, targetEpisode);
+        recordHistory(details, targetSeason, targetEpisode);
       } catch (error) {
         console.error("Failed to fetch series data:", error);
       } finally {
@@ -116,21 +228,43 @@ const Series = () => {
 
     fetchSeriesData();
     window.scrollTo(0, 0);
-  }, [id]);
+  }, [id, initialNumbers.season, initialNumbers.episode, recordHistory, updateUrlParams]);
 
   const handleSeasonChange = async (s: number) => {
     if (s === season) return;
     setIsSeasonLoading(true);
     setSeason(s);
     setEpisode(1);
+    updateUrlParams(s, 1);
+    if (id) {
+      saveSeriesProgress(id, s, 1);
+    }
+    if (series) {
+      recordHistory(series, s, 1);
+    }
     try {
       if (series) {
         const data = await getTVSeasonDetails(series.id, s);
         setSeasonData(data);
       }
+    } catch (err) {
+      console.error("Failed to load season details:", err);
     } finally {
       setIsSeasonLoading(false);
     }
+  };
+
+  const handleEpisodeChange = (epNumber: number) => {
+    if (epNumber === episode) return;
+    setEpisode(epNumber);
+    updateUrlParams(season, epNumber);
+    if (id) {
+      saveSeriesProgress(id, season, epNumber);
+    }
+    if (series) {
+      recordHistory(series, season, epNumber);
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Show full page loader ONLY if we don't have ANY series data (direct URL load)
@@ -251,8 +385,7 @@ const Series = () => {
                           disabled={!isReleased}
                           onClick={() => {
                             if (!isReleased) return;
-                            setEpisode(ep.episode_number);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            handleEpisodeChange(ep.episode_number);
                           }}
                           className={`group relative flex items-center gap-3 p-2.5 rounded-lg border transition-all duration-300 text-left
                             ${!isReleased ? "opacity-40 grayscale cursor-not-allowed" : ""}
@@ -335,7 +468,7 @@ const Series = () => {
                   voteCount={m.vote_count}
                   tmdbId={m.id}
                   mediaType="tv"
-                  onClick={(id) => navigate(`/watch/tv/${id}`, {
+                  onClick={() => navigate(getSeriesWatchUrl(m.id), {
                     state: {
                       movie: {
                         id: m.id,
