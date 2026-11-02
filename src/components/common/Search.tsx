@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Film, Tv, Building2, Star, ArrowRight, X, TrendingUp, Sparkles } from "lucide-react";
-import { searchCompany, searchMulti } from "../../services/tmdb.service";
+import { Search, Film, Tv, Building2, Star, ArrowRight, X, TrendingUp, Sparkles, Globe2 } from "lucide-react";
+import { searchCompany, searchMulti, searchByLanguage } from "../../services/tmdb.service";
 import type { CompanySearchResult, MovieDetails } from "../../types/movie";
 import { fetchMovies } from "../../utils/fetchMovies";
 import { getSeriesWatchUrl } from "../../utils/watchHistory";
+import { POPULAR_LANGUAGES, getLanguageName } from "../../config/languages";
 import Skeleton from "./Skeleton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -19,6 +20,7 @@ interface ResultItem {
   poster?: string | null;
   rating?: number;
   overview?: string;
+  language?: string;
   // company-specific
   logoPath?: string | null;
   originCountry?: string;
@@ -47,19 +49,40 @@ const SearchSkeleton = () => (
 
 // ─── Empty State ──────────────────────────────────────────────────────────────
 
-const EmptyState = ({ query }: { query: string }) => (
-  <div className="flex flex-col items-center gap-3 py-10 text-zinc-500">
-    <Search size={36} className="opacity-30" />
-    <p className="text-sm">
-      No results for <span className="text-zinc-300 font-semibold">"{query}"</span>
-    </p>
-    <p className="text-xs text-zinc-600">Try a different keyword or tab</p>
-  </div>
-);
+const EmptyState = ({ query, language }: { query: string; language?: string }) => {
+  const langName = language && language !== "all" ? getLanguageName(language) : null;
+  return (
+    <div className="flex flex-col items-center gap-3 py-10 text-zinc-500">
+      <Search size={36} className="opacity-30" />
+      <p className="text-sm text-center px-4">
+        No results for <span className="text-zinc-300 font-semibold">"{query}"</span>
+        {langName && (
+          <span className="text-red-400 font-medium"> in {langName}</span>
+        )}
+      </p>
+      <p className="text-xs text-zinc-600">
+        {langName ? "Try switching to All Languages or check spelling" : "Try a different keyword or tab"}
+      </p>
+    </div>
+  );
+};
 
 // ─── Idle Placeholder ─────────────────────────────────────────────────────────
 
-const IdlePlaceholder = ({ tab }: { tab: SearchTab }) => {
+const IdlePlaceholder = ({ tab, language }: { tab: SearchTab; language?: string }) => {
+  const langName = language && language !== "all" ? getLanguageName(language) : null;
+
+  if (langName) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-10 text-zinc-500">
+        <span className="opacity-40 text-red-500"><Globe2 size={32} /></span>
+        <p className="text-xs text-center px-4">
+          Search specifically within <span className="text-white font-semibold">{langName}</span> {tab === "tv" ? "series" : tab === "movie" ? "movies" : "movies & shows"}
+        </p>
+      </div>
+    );
+  }
+
   const hints: Record<SearchTab, { icon: React.ReactNode; text: string }> = {
     all:     { icon: <Sparkles size={32} />,  text: "Search all movies & series — try \"Avatar\" or \"Stranger Things\"" },
     movie:   { icon: <Film size={32} />,      text: "Search for movies — try \"Inception\" or \"Dune\"" },
@@ -82,6 +105,7 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<SearchTab>("all");
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("all");
   const [results, setResults] = useState<ResultItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -93,7 +117,7 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
 
   // ── Search logic ─────────────────────────────────────────────────────────
 
-  const performSearch = useCallback(async (query: string, tab: SearchTab) => {
+  const performSearch = useCallback(async (query: string, tab: SearchTab, lang: string = selectedLanguage) => {
     setIsLoading(true);
     setHasSearched(true);
     setFocusedIndex(-1);
@@ -112,6 +136,25 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
             originCountry: c.origin_country,
           }));
         setResults(formatted);
+      } else if (lang && lang !== "all") {
+        const data = await searchByLanguage({
+          query,
+          language: lang,
+          mediaType: tab,
+        });
+        const formatted: ResultItem[] = (data.results as MovieDetails[])
+          .slice(0, 12)
+          .map((m) => ({
+            id: m.id,
+            title: m.title || m.name || "",
+            year: (m.release_date || m.first_air_date || "").split("-")[0],
+            mediaType: (m.media_type === "tv" ? "tv" : tab === "tv" ? "tv" : "movie") as SearchTab,
+            poster: m.poster_path,
+            rating: m.vote_average,
+            overview: m.overview,
+            language: m.original_language,
+          }));
+        setResults(formatted);
       } else if (tab === "all") {
         const data = await searchMulti(query);
         const formatted: ResultItem[] = (data.results as MovieDetails[])
@@ -124,6 +167,7 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
             poster: m.poster_path,
             rating: m.vote_average,
             overview: m.overview,
+            language: m.original_language,
           }));
         setResults(formatted);
       } else {
@@ -143,6 +187,7 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
             poster: m.poster_path,
             rating: m.vote_average,
             overview: m.overview,
+            language: m.original_language,
           }));
         setResults(formatted);
       }
@@ -152,7 +197,7 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [selectedLanguage]);
 
   // ── Debounced input handler ───────────────────────────────────────────────
 
@@ -170,7 +215,7 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
     }
 
     debounceRef.current = setTimeout(() => {
-      performSearch(value.trim(), activeTab);
+      performSearch(value.trim(), activeTab, selectedLanguage);
     }, 300);
   };
 
@@ -183,7 +228,21 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
     if (searchTerm.trim().length >= 2) {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
-        performSearch(searchTerm.trim(), tab);
+        performSearch(searchTerm.trim(), tab, selectedLanguage);
+      }, 150);
+    }
+  };
+
+  // Handle language filter switch
+  const handleLanguageChange = (langCode: string) => {
+    setSelectedLanguage(langCode);
+    setResults([]);
+    setHasSearched(false);
+    setFocusedIndex(-1);
+    if (searchTerm.trim().length >= 2) {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        performSearch(searchTerm.trim(), activeTab, langCode);
       }, 150);
     }
   };
@@ -215,11 +274,18 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
   const handleSeeMore = () => {
     onClose();
     if (!searchTerm.trim()) {
-      navigate("/browse");
+      if (selectedLanguage && selectedLanguage !== "all") {
+        navigate(`/languages?lang=${selectedLanguage}`);
+      } else {
+        navigate("/browse");
+      }
       return;
     }
+
     if (activeTab === "company") {
       navigate(`/browse?q=${encodeURIComponent(searchTerm.trim())}&type=company`);
+    } else if (selectedLanguage && selectedLanguage !== "all") {
+      navigate(`/languages?lang=${selectedLanguage}&q=${encodeURIComponent(searchTerm.trim())}&type=${activeTab === "all" ? "all" : activeTab}`);
     } else if (activeTab === "all") {
       navigate(`/browse?q=${encodeURIComponent(searchTerm.trim())}&type=all`);
     } else {
@@ -323,7 +389,13 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
               value={searchTerm}
               onChange={handleSearchChange}
               onKeyDown={handleKeyDown}
-              placeholder="Search movies, series, and studios…"
+              placeholder={
+                activeTab === "company"
+                  ? "Search studios…"
+                  : selectedLanguage !== "all"
+                  ? `Search in ${getLanguageName(selectedLanguage)} ${activeTab === "tv" ? "series" : activeTab === "movie" ? "movies" : "titles"}…`
+                  : "Search movies, series, and studios…"
+              }
               autoFocus
               className="flex-1 bg-transparent text-white text-[15px] placeholder-zinc-500 outline-none"
               aria-label="Search"
@@ -377,6 +449,47 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
             ))}
           </div>
 
+          {/* ── Language Filter Strip ────────────────────────────────────── */}
+          {activeTab !== "company" && (
+            <div className="flex items-center gap-1.5 px-4 py-2 border-b border-white/5 bg-white/[0.015] overflow-x-auto scrollbar-hide">
+              <div className="flex items-center gap-1 text-[11px] font-bold text-zinc-500 mr-1 shrink-0 uppercase tracking-wider">
+                <Globe2 size={12} className="text-zinc-400" />
+                <span>Lang:</span>
+              </div>
+
+              <button
+                onClick={() => handleLanguageChange("all")}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-semibold shrink-0 transition-all cursor-pointer ${
+                  selectedLanguage === "all"
+                    ? "bg-white/20 text-white border border-white/30"
+                    : "text-zinc-400 hover:text-white hover:bg-white/5 border border-white/5"
+                }`}
+              >
+                All
+              </button>
+
+              {POPULAR_LANGUAGES.map((lang) => {
+                const isSelected = selectedLanguage.toLowerCase() === lang.code.toLowerCase();
+                return (
+                  <button
+                    key={lang.code}
+                    onClick={() => handleLanguageChange(lang.code)}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-semibold shrink-0 transition-all flex items-center gap-1 cursor-pointer ${
+                      isSelected
+                        ? "bg-red-600 text-white border border-red-500 shadow-md shadow-red-950/40"
+                        : "text-zinc-400 hover:text-white hover:bg-white/5 border border-white/5"
+                    }`}
+                  >
+                    <span>{lang.name}</span>
+                    {lang.nativeName !== lang.name && (
+                      <span className="text-[9px] opacity-70">{lang.nativeName}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {/* ── Results area ─────────────────────────────────────────────── */}
           <div className="max-h-[60vh] overflow-y-auto">
 
@@ -385,12 +498,12 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
 
             {/* No results */}
             {!isLoading && hasSearched && results.length === 0 && (
-              <EmptyState query={searchTerm} />
+              <EmptyState query={searchTerm} language={selectedLanguage} />
             )}
 
             {/* Idle */}
             {!isLoading && !hasSearched && (
-              <IdlePlaceholder tab={activeTab} />
+              <IdlePlaceholder tab={activeTab} language={selectedLanguage} />
             )}
 
             {/* Results list */}
@@ -470,6 +583,14 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
                             </span>
                           </>
                         )}
+                        {item.language && item.mediaType !== "company" && (
+                          <>
+                            <span className="text-zinc-700">·</span>
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider bg-white/10 text-zinc-300">
+                              {item.language}
+                            </span>
+                          </>
+                        )}
                         {item.mediaType === "company" && item.originCountry && (
                           <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-purple-600/20 text-purple-400">
                             {item.originCountry || "Studio"}
@@ -496,10 +617,13 @@ const SearchModal = ({ onClose }: { onClose: () => void }) => {
             {!isLoading && results.length > 0 && (
               <button
                 onClick={handleSeeMore}
-                className="flex w-full items-center justify-center gap-2 py-3 text-[13px] text-zinc-400 hover:text-white hover:bg-white/5 transition-all duration-200 border-t border-white/5 group"
+                className="flex w-full items-center justify-center gap-2 py-3 text-[13px] text-zinc-400 hover:text-white hover:bg-white/5 transition-all duration-200 border-t border-white/5 group cursor-pointer"
               >
                 <TrendingUp size={14} className="group-hover:text-red-400 transition-colors" />
                 Browse all results for <span className="text-white font-medium">"{searchTerm}"</span>
+                {selectedLanguage !== "all" && (
+                  <span className="text-red-400 font-medium"> in {getLanguageName(selectedLanguage)}</span>
+                )}
                 <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform text-red-500" />
               </button>
             )}

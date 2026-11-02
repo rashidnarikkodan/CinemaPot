@@ -11,8 +11,10 @@ import {
   Compass,
   Sparkles,
   ChevronRight,
+  Globe2,
 } from "lucide-react";
 import SearchModal from "./Search";
+import { POPULAR_LANGUAGES } from "../../config/languages";
 
 const MobileBottomNav = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -242,6 +244,45 @@ const MobileBottomNav = () => {
 
           {/* Navlinks List with Glassmorphic styling */}
           <div className="space-y-2">
+            {/* Language Explorer */}
+            <div
+              onClick={() => handleNavigate("/languages")}
+              role="button"
+              tabIndex={0}
+              className={`flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer active:scale-98 ${
+                location.pathname === "/languages"
+                  ? "bg-red-600/20 text-white border-red-500/40 shadow-lg shadow-red-950/30"
+                  : "bg-gradient-to-r from-red-950/20 via-white/[0.03] to-white/[0.03] border-white/10 text-zinc-300 hover:bg-white/[0.08]"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-red-600/20 text-red-400 border border-red-500/20">
+                  <Globe2 size={18} />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white flex items-center gap-1.5">
+                    Explore by Language
+                    <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-red-600/30 text-red-400">NEW</span>
+                  </div>
+                  <div className="text-[11px] text-zinc-400">Malayalam, Hindi, Tamil, Telugu & more</div>
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-zinc-600" />
+            </div>
+
+            {/* Quick Language Pills Strip */}
+            <div className="flex gap-1.5 overflow-x-auto py-1 scrollbar-hide px-1">
+              {POPULAR_LANGUAGES.slice(0, 6).map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => handleNavigate(`/languages?lang=${lang.code}`)}
+                  className="px-2.5 py-1 rounded-xl text-[11px] font-semibold bg-white/[0.05] hover:bg-red-600/20 hover:text-white border border-white/8 text-zinc-300 shrink-0 transition-colors"
+                >
+                  {lang.name}
+                </button>
+              ))}
+            </div>
+
             {/* New & Popular */}
             <div
               onClick={() => handleNavigate("/browse?sort=new")}

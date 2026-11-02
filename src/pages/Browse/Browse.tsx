@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Building2, Film, Tv, ChevronDown, Search, Flame, Star, Compass, History, Sparkles } from "lucide-react";
+import { Building2, Film, Tv, ChevronDown, Search, Flame, Star, Compass, History, Sparkles, Globe2 } from "lucide-react";
 import Header from "../../components/common/Header";
 import { fetchMovies } from "../../utils/fetchMovies";
-import { searchMulti, getMoviesByCompany } from "../../services/tmdb.service";
+import { searchMulti, getMoviesByCompany, searchByLanguage, getMoviesByLanguage } from "../../services/tmdb.service";
 import { getWatchHistory, getSeriesWatchUrl } from "../../utils/watchHistory";
+import { POPULAR_LANGUAGES, getLanguageName } from "../../config/languages";
 import MovieCard from "../../components/movie/MovieCard";
 import Skeleton from "../../components/common/Skeleton";
 import type { MovieDetails } from "../../types/movie";
@@ -43,12 +44,14 @@ const PageHeader = ({
   query,
   type,
   sort,
+  lang,
   total,
   loading = false,
 }: {
   query: string | null;
   type: string;
   sort: string | null;
+  lang: string | null;
   total: number;
   loading?: boolean;
 }) => {
@@ -56,23 +59,37 @@ const PageHeader = ({
   if (type === "all") {
     icon = <Sparkles size={22} className="text-red-500" />;
   }
+  if (lang) {
+    icon = <Globe2 size={22} className="text-red-500" />;
+  }
+
+  const langLabel = lang ? getLanguageName(lang) : "";
+
   let title = query
-    ? `Results for "${query}"`
-    : type === "tv"
-      ? "Series"
-      : type === "all"
-        ? "Movies & Series"
-        : "Movies";
+    ? lang
+      ? `Results for "${query}" in ${langLabel}`
+      : `Results for "${query}"`
+    : lang
+      ? `${langLabel} ${type === "tv" ? "Series" : "Movies"}`
+      : type === "tv"
+        ? "Series"
+        : type === "all"
+          ? "Movies & Series"
+          : "Movies";
 
   if (sort === "new") {
     icon = <Flame size={22} className="text-red-500" />;
-    title = "New & Popular";
+    title = lang ? `Latest ${langLabel} Releases` : "New & Popular";
   } else if (sort === "top") {
     icon = <Star size={22} className="text-yellow-400" />;
-    title = type === "tv" ? "Top Series" : "Top Rated Movies";
+    title = lang
+      ? `Top Rated ${langLabel} ${type === "tv" ? "Series" : "Movies"}`
+      : type === "tv"
+        ? "Top Series"
+        : "Top Rated Movies";
   } else if (sort === "trending") {
     icon = <Compass size={22} className="text-blue-400" />;
-    title = type === "tv" ? "Trending Series" : "Trending Now";
+    title = lang ? `Trending ${langLabel} Titles` : type === "tv" ? "Trending Series" : "Trending Now";
   } else if (sort === "history") {
     icon = <History size={22} className="text-red-500" />;
     title = "Recently Watched";
@@ -120,6 +137,7 @@ const Browse = () => {
   const query = searchParams.get("q");
   const type = searchParams.get("type") || "movie";
   const sort = searchParams.get("sort");
+  const lang = searchParams.get("lang");
   const companyId = searchParams.get("company");
   const companyName = searchParams.get("company_name") || "Production Company";
 
@@ -143,6 +161,29 @@ const Browse = () => {
         } else if (sort === "history") {
           results = getWatchHistory() as unknown as MovieDetails[];
           pages = 1;
+        } else if (lang) {
+          if (query) {
+            const data = await searchByLanguage({
+              query,
+              language: lang,
+              mediaType: type as "movie" | "tv" | "all",
+              page,
+            });
+            results = data.results ?? [];
+            pages = data.total_pages ?? 1;
+          } else {
+            const data = await getMoviesByLanguage({
+              language: lang,
+              mediaType: type === "tv" ? "tv" : "movie",
+              page,
+              sortBy: sort === "top" ? "vote_average.desc" : sort === "new" ? "primary_release_date.desc" : "popularity.desc",
+            });
+            results = (data?.results ?? []).map((m: MovieDetails) => ({
+              ...m,
+              media_type: type as "movie" | "tv",
+            }));
+            pages = data?.total_pages ?? 1;
+          }
         } else if (query) {
           if (type === "movie") {
             const data = await fetchMovies({
@@ -205,7 +246,7 @@ const Browse = () => {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [query, type, sort, companyId, isCompanyMode]
+    [query, type, sort, lang, companyId, isCompanyMode]
   );
 
   // Reset and reload on params change
@@ -222,6 +263,16 @@ const Browse = () => {
     loadMovies(nextPage, true);
   };
 
+  const handleLanguageFilter = (code?: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (!code) {
+      nextParams.delete("lang");
+    } else {
+      nextParams.set("lang", code);
+    }
+    navigate(`/browse?${nextParams.toString()}`);
+  };
+
   // ─────────────────────────────────────────────────────────────────────────
   // Render
   // ─────────────────────────────────────────────────────────────────────────
@@ -235,13 +286,53 @@ const Browse = () => {
         {isCompanyMode ? (
           <CompanyBanner name={companyName} movieCount={movies.length} />
         ) : (
-          <PageHeader
-            query={query}
-            type={type}
-            sort={sort}
-            total={movies.length}
-            loading={loading}
-          />
+          <div>
+            <PageHeader
+              query={query}
+              type={type}
+              sort={sort}
+              lang={lang}
+              total={movies.length}
+              loading={loading}
+            />
+
+            {/* Quick Language Filter Pills in Browse */}
+            <div className="mb-8 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide select-none">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-400 mr-1 shrink-0 uppercase tracking-wider">
+                <Globe2 size={13} className="text-red-500" />
+                <span>Languages:</span>
+              </div>
+              <button
+                onClick={() => handleLanguageFilter()}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all border cursor-pointer ${
+                  !lang
+                    ? "bg-red-600 text-white border-red-500 shadow-md shadow-red-950/40"
+                    : "bg-white/[0.04] text-zinc-400 border-white/5 hover:text-white hover:bg-white/[0.08]"
+                }`}
+              >
+                All Languages
+              </button>
+              {POPULAR_LANGUAGES.map((l) => {
+                const isActive = lang?.toLowerCase() === l.code.toLowerCase();
+                return (
+                  <button
+                    key={l.code}
+                    onClick={() => handleLanguageFilter(isActive ? undefined : l.code)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all border flex items-center gap-1.5 cursor-pointer ${
+                      isActive
+                        ? "bg-red-600 text-white border-red-500 shadow-md shadow-red-950/40"
+                        : "bg-white/[0.04] text-zinc-400 border-white/5 hover:text-white hover:bg-white/[0.08]"
+                    }`}
+                  >
+                    <span>{l.name}</span>
+                    {l.nativeName !== l.name && (
+                      <span className="text-[10px] opacity-70 font-normal">{l.nativeName}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         )}
 
         {/* Grid */}

@@ -169,3 +169,63 @@ export const getMoviesByCompany = async (companyId: number, page = 1) => {
     page,
   });
 };
+
+/**
+ * Fetches movies or series by original language via /discover endpoint.
+ */
+export const getMoviesByLanguage = async ({
+  language,
+  mediaType = "movie",
+  page = 1,
+  sortBy = "popularity.desc",
+}: {
+  language: string;
+  mediaType?: "movie" | "tv";
+  page?: number;
+  sortBy?: string;
+}) => {
+  return fetchWithCache(`/discover/${mediaType}`, {
+    with_original_language: language,
+    sort_by: sortBy,
+    page,
+  });
+};
+
+/**
+ * Searches movies and TV shows filtered by original language.
+ */
+export const searchByLanguage = async ({
+  query,
+  language,
+  mediaType = "movie",
+  page = 1,
+}: {
+  query: string;
+  language?: string;
+  mediaType?: "movie" | "tv" | "all";
+  page?: number;
+}) => {
+  const normLang = language?.toLowerCase().trim();
+  const hasLang = normLang && normLang !== "all";
+
+  if (!hasLang) {
+    if (mediaType === "all") return searchMulti(query, page);
+    return fetchWithCache(`/search/${mediaType}`, { query, page, include_adult: false });
+  }
+
+  if (mediaType === "all") {
+    // Search multi and filter by original_language
+    const multi = await searchMulti(query, page);
+    const results = (multi.results ?? []).filter(
+      (m: MovieDetails) => m.original_language?.toLowerCase() === normLang
+    );
+    return { ...multi, results };
+  }
+
+  const data = await fetchWithCache(`/search/${mediaType}`, { query, page, include_adult: false });
+  const results = (data.results ?? []).filter(
+    (m: MovieDetails) => m.original_language?.toLowerCase() === normLang
+  );
+  return { ...data, results };
+};
+

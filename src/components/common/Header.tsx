@@ -9,9 +9,10 @@ const Header = () => {
 
   const navItems = [
     { name: "Home", path: "/" },
-    { name: "Series", path: "/browse?type=tv" },
+    { name: "Languages", path: "/languages" },
     { name: "Movies", path: "/browse?type=movie" },
-   ];
+    { name: "Series", path: "/browse?type=tv" },
+  ];
 
   return (
     <>

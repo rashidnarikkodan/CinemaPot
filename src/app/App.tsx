@@ -9,6 +9,7 @@ import MobileBottomNav from "../components/common/MobileBottomNav";
 
 import Home from "../pages/Home/Home";
 import Browse from "../pages/Browse/Browse";
+import Languages from "../pages/Languages/Languages";
 import Movie from "../pages/Movie/Movie";
 import Series from "../pages/Series/Series";
 
@@ -19,6 +20,7 @@ function App() {
         <Suspense fallback={<Loader />}>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/languages" element={<Languages />} />
             <Route path="/browse" element={<Browse />} />
             <Route path="/browse/:id" element={<Movie />} />
             <Route path="/watch/movie/:id" element={<Movie />} />
